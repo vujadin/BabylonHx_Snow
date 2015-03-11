@@ -7,7 +7,7 @@ import com.babylonhx.tools.AsyncLoop;
  * ...
  * @author Krtolica Vujadin
  */
-class SimplificationQueue {
+@:expose('BABYLON.SimplificationQueue') class SimplificationQueue {
 	
 	private var _simplificationArray:Array<SimplificationTask>;
 	public var running:Bool;
@@ -35,16 +35,13 @@ class SimplificationQueue {
 
 	public function runSimplification(task:SimplificationTask) {
 		
-		function setLODLevel(distance:Float, mesh:Mesh) {
-			
-		}
-		
 		if (task.parallelProcessing) {
 			//parallel simplifier
 			for(setting in task.settings) {
 				var simplifier = this.getSimplifier(task);
 				simplifier.simplify(setting, function(newMesh:Mesh) {
 					task.mesh.addLODLevel(setting.distance, newMesh);
+					newMesh.isVisible = true;
 					//check if it is the last
 					if (setting.quality == task.settings[task.settings.length - 1].quality && task.successCallback != null) {
 						//all done, run the success callback.
@@ -60,6 +57,7 @@ class SimplificationQueue {
 			var runDecimation = function(setting:ISimplificationSettings, callback:Void->Void) {
 				simplifier.simplify(setting, function(newMesh:Mesh) {
 					task.mesh.addLODLevel(setting.distance, newMesh);
+					newMesh.isVisible = true;
 					//run the next quality level
 					callback();
 				});

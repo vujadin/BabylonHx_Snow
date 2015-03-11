@@ -24,9 +24,7 @@ uniform mat4 viewProjection;
 uniform mat4 mBones[BonesPerMesh];
 #endif
 
-varying vec4 vPosition;
-
-#ifdef ALPHATEST
+#if defined(ALPHATEST) || defined(NEED_UV)
 varying vec2 vUV;
 uniform mat4 diffuseMatrix;
 #ifdef UV1
@@ -51,12 +49,12 @@ void main(void)
 	mat4 m2 = mBones[int(matricesIndices.z)] * matricesWeights.z;
 	mat4 m3 = mBones[int(matricesIndices.w)] * matricesWeights.w;
 	finalWorld = finalWorld * (m0 + m1 + m2 + m3);
+	gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
+#else
+	gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
 #endif
 
-	vPosition = viewProjection * finalWorld * vec4(position, 1.0);
-	gl_Position = vPosition;
-
-#ifdef ALPHATEST
+#if defined(ALPHATEST) || defined(BASIC_RENDER)
 #ifdef UV1
 	vUV = vec2(diffuseMatrix * vec4(uv, 1.0, 0.0));
 #endif

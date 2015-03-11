@@ -1066,10 +1066,52 @@ import snow.utils.ByteArray;
 	 * @param settings a collection of simplification settings.
 	 * @param parallelProcessing should all levels calculate parallel or one after the other.
 	 * @param type the type of simplification to run.
-	 * successCallback optional success callback to be called after the simplification finished processing all settings.
+	 * @param successCallback optional success callback to be called after the simplification finished processing all settings.
 	 */
 	public function simplify(settings:Array<ISimplificationSettings>, parallelProcessing:Bool = true, simplificationType:Int = SimplificationSettings.QUADRATIC, ?successCallback:Void->Void) {
 		this.getScene().simplificationQueue.addTask(new SimplificationTask(settings, simplificationType, this, successCallback, parallelProcessing));  
+	}
+	
+	/**
+	 * Optimization of the mesh's indices, in case a mesh has duplicated vertices.
+	 * The function will only reorder the indices and will not remove unused vertices to avoid problems with submeshes.
+	 * This should be used together with the simplification to avoid disappearing triangles.
+	 * @param successCallback an optional success callback to be called after the optimization finished.
+	 */
+	public function optimizeIndices(?successCallback:Mesh->Void) {
+		var indices = this.getIndices();
+		var positions = this.getVerticesData(VertexBuffer.PositionKind);
+		var vectorPositions:Array<Vector3> = [];
+		var pos:Int = 0;
+		while(pos < positions.length) {
+			vectorPositions.push(Vector3.FromArray(positions, pos));
+			pos += 3;
+		}
+		var dupes:Array<Int> = [];
+		
+		AsyncLoop.SyncAsyncForLoop(vectorPositions.length, 40, function (iteration:Int) {
+			var realPos:Int = vectorPositions.length - 1 - iteration;
+			var testedPosition:Vector3 = vectorPositions[realPos];
+			for (j in 0...realPos) {
+				var againstPosition = vectorPositions[j];
+				if (testedPosition.equals(againstPosition)) {
+					dupes[realPos] = j;
+					break;
+				}
+			}
+		}, function() {
+			for (i in 0...indices.length) {
+				indices[i] = dupes[indices[i]];// != null ? dupes[indices[i]] : indices[i];
+			}
+			
+			//indices are now reordered
+			var originalSubMeshes = this.subMeshes.slice(0);
+			this.setIndices(indices);
+			this.subMeshes = originalSubMeshes;
+			if (successCallback != null) {
+				successCallback(this);
+			}
+		});
 	}
 
 	// Statics

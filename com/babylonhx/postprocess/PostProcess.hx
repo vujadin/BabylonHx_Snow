@@ -33,7 +33,7 @@ import snow.render.opengl.GL;
 	private var _renderRatio:Float;
 	private var _reusable:Bool = false;
 	public var _textures:SmartArray = new SmartArray(2);// SmartArray<BabylonTexture> = new SmartArray<BabylonTexture>(2);
-	public var _currentRenderTextureInd:Int = 0;
+	public var _currentRenderTextureId:Int = 0;
 	private var _effect:Effect;
 	
 
@@ -70,12 +70,11 @@ import snow.render.opengl.GL;
 		
 		var scene = camera.getScene();
 		var maxSize = camera.getEngine().getCaps().maxTextureSize;
-		
 		var desiredWidth = (sourceTexture != null ? sourceTexture._width : this._engine.getRenderWidth()) * this._renderRatio;
         var desiredHeight = (sourceTexture != null ? sourceTexture._height : this._engine.getRenderHeight()) * this._renderRatio;
         desiredWidth = Tools.GetExponantOfTwo(Std.int(desiredWidth), maxSize);
 		desiredHeight = Tools.GetExponantOfTwo(Std.int(desiredHeight), maxSize);
-		     
+				     
 		if (this.width != desiredWidth || this.height != desiredHeight) {
 			if (this._textures.length > 0) {
 				for (i in 0...this._textures.length) {
@@ -85,6 +84,7 @@ import snow.render.opengl.GL;
 			}
 			this.width = desiredWidth;
 			this.height = desiredHeight;
+			
 			this._textures.push(this._engine.createRenderTargetTexture( { width: this.width, height: this.height }, { generateMipMaps: false, generateDepthBuffer: camera._postProcesses.indexOf(this) == camera._postProcessesTakenIndices[0], samplingMode: this.renderTargetSamplingMode } ));
 			
 			if (this._reusable) {
@@ -96,7 +96,7 @@ import snow.render.opengl.GL;
 			}
 		}
 		
-		this._engine.bindFramebuffer(this._textures.data[this._currentRenderTextureInd]);
+		this._engine.bindFramebuffer(this._textures.data[this._currentRenderTextureId]);
 		
 		if (this.onActivate != null) {
 			this.onActivate(camera);
@@ -106,7 +106,7 @@ import snow.render.opengl.GL;
 		this._engine.clear(scene.clearColor, scene.autoClear || scene.forceWireframe, true);
 		
 		if (this._reusable) {
-			this._currentRenderTextureInd = (this._currentRenderTextureInd + 1) % 2;
+			this._currentRenderTextureId = (this._currentRenderTextureId + 1) % 2;
 		}
 	}
 
@@ -124,7 +124,7 @@ import snow.render.opengl.GL;
 		this._engine.setDepthWrite(false);
 		
 		// Texture
-		this._effect._bindTexture("textureSampler", this._textures.data[this._currentRenderTextureInd]);
+		this._effect._bindTexture("textureSampler", this._textures.data[this._currentRenderTextureId]);
 		
 		// Parameters
 		if (this.onApply != null) {

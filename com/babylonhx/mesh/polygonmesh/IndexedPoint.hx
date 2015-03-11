@@ -7,7 +7,7 @@ import org.poly2tri.Point;
  * ...
  * @author Krtolica Vujadin
  */
-class IndexedPoint extends Point {
+@:expose('BABYLON.IndexedPoint') class IndexedPoint extends Point {
 	
 	public var index:Int = 0;
 

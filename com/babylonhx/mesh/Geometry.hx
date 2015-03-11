@@ -134,6 +134,11 @@ import snow.utils.Float32Array;
 				mesh._resetPointsArrayCache();
 				if (updateExtends) {
 					mesh._boundingInfo = new BoundingInfo(extend.minimum, extend.maximum);
+					
+					for (subIndex in 0...mesh.subMeshes.length) {
+                        var subMesh = mesh.subMeshes[subIndex];
+                        subMesh.refreshBoundingInfo();
+                    }
 				}
 			}
 		}
@@ -402,7 +407,7 @@ import snow.utils.Float32Array;
 		var stopChecking = false;
 		
 		for (kind in this._vertexBuffers.keys()) {
-			vertexData.set(this.getVerticesData(kind), kind);
+			vertexData.set(this.getVerticesData(kind).copy(), kind);
 			
 			if (!stopChecking) {
 				updatable = this.getVertexBuffer(kind).isUpdatable();

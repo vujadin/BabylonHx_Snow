@@ -7,7 +7,7 @@ import com.babylonhx.tools.Tools;
  * ...
  * @author Krtolica Vujadin
  */
-class PolygonPoints {
+@:expose('BABYLON.PolygonPoints') class PolygonPoints {
 	
 	public var elements:Array<IndexedPoint>;
 	

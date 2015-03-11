@@ -5,7 +5,7 @@ package com.babylonhx.math;
  * @author Krtolica Vujadin
  */
 
-class Path3D {
+@:expose('BABYLON.Path3D') class Path3D {
 	
 	public var path:Array<Vector3>;
 	

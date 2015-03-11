@@ -9,6 +9,7 @@ import com.babylonhx.math.Vector2;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.postprocess.PostProcess;
 import com.babylonhx.materials.textures.BaseTexture;
+import haxe.CallStack;
 import snow.assets.AssetText;
 
 import snow.App;
@@ -53,7 +54,7 @@ import snow.utils.Float32Array;
 		this._uniformsNames = uniformsNames.concat(samplers);
 		this._samplers = samplers;
 		this._attributesNames = attributesNames;
-		
+						
 		this.onError = onError;
 		this.onCompiled = onCompiled;
 		
@@ -74,27 +75,33 @@ import snow.utils.Float32Array;
         }
 		
         var _vertexCode:String = "";
+		var prepareEffect = function(_fragmentCode:String) {
+			this._prepareEffect(_vertexCode, _fragmentCode, attributesNames, defines, fallbacks);					
+			// Cache
+			this._valueCache = new Map<String, Array<Float>>();
+		};
+		var getFragmentCode = function() {
+			var _fragmentCode:String = "";
+			if (ShadersStore.Shaders.exists(fragment + ".fragment")) {
+				_fragmentCode = ShadersStore.Shaders.get(fragment + ".fragment");
+				prepareEffect(_fragmentCode);
+			} else {
+				Tools.LoadFile(fragmentShaderUrl + ".fragment.fx", function(content:AssetText) {
+					_fragmentCode = content.text;
+					prepareEffect(_fragmentCode);
+				}, "text");
+			}
+		};
+		
         if (ShadersStore.Shaders.exists(vertex + ".vertex")) {
             _vertexCode = ShadersStore.Shaders.get(vertex + ".vertex");
+			getFragmentCode();
         } else {
 			Tools.LoadFile(vertexShaderUrl + ".vertex.fx", function(content:AssetText) {
-				_vertexCode = content.text;
+				_vertexCode = content.text;				
+				getFragmentCode();
 			}, "text");
-        }
-		
-        var _fragmentCode:String = "";
-        if (ShadersStore.Shaders.exists(fragment + ".fragment")) {
-            _fragmentCode = ShadersStore.Shaders.get(fragment + ".fragment");
-        } else {
-            Tools.LoadFile(vertexShaderUrl + ".fragment.fx", function(content:AssetText) {
-				_fragmentCode = content.text;
-			}, "text");
-        }
-		
-		this._prepareEffect(_vertexCode, _fragmentCode, attributesNames, defines, fallbacks);
-		
-		// Cache
-        this._valueCache = new Map<String, Array<Float>>();
+        }  
 	}
 
 	// Properties
@@ -171,7 +178,6 @@ import snow.utils.Float32Array;
 			
             this._uniforms = engine.getUniforms(this._program, this._uniformsNames);
             this._attributes = engine.getAttributes(this._program, attributesNames);
-						
 			var index:Int = 0;
 			while(index < this._samplers.length) {
                 var sampler = this.getUniform(this._samplers[index]);

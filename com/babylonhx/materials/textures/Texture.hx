@@ -69,7 +69,7 @@ import com.babylonhx.math.Vector3;
 		this._buffer = buffer;
 		this._deleteBuffer = deleteBuffer;
 		
-		if (url == null/* || StringTools.trim(url) == ""*/) {
+		if (url == null || StringTools.trim(url) == "") {
 			return;
 		}
 		
@@ -104,6 +104,14 @@ import com.babylonhx.math.Vector3;
 			}
 		}
 	}
+	
+	public function updateSamplingMode(samplingMode:Int) {
+        if (this._texture == null) {
+            return;
+        }
+		
+        this.getScene().getEngine().updateTextureSamplingMode(samplingMode, this._texture);
+    }
 
 	private function _prepareRowForTextureGeneration(x:Float, y:Float, z:Float, t:Vector3) {
 		x -= this.uOffset + 0.5;

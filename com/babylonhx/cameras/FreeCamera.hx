@@ -68,14 +68,14 @@ import snow.utils.Libs;
 		this._attachedElement = element;
 		
 		if (this._onMouseDown == null) {
-			this._onMouseDown = function(x:Float, y:Float) {
+			this._onMouseDown = function(x:Float, y:Float, button:Int) {
 				previousPosition = {
 					x: x,
 					y: y
 				};
 			};
 			
-			this._onMouseUp = function() {
+			this._onMouseUp = function(x:Float, y:Float, button:Int) {
 				previousPosition = null;				
 			};
 			

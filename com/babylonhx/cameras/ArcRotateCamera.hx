@@ -27,7 +27,7 @@ import snow.input.Keycodes;
 	public var lowerRadiusLimit:Null<Float> = null;
 	public var upperRadiusLimit:Null<Float> = null;
 	public var angularSensibility:Float = 1000.0;
-	public var wheelPrecision:Float = 3.0;
+	public var wheelPrecision:Float = 5.0;
 	public var keysUp:Array<Int> = [Keycodes.up];
 	public var keysDown:Array<Int> = [Keycodes.down];
 	public var keysLeft:Array<Int> = [Keycodes.left];
@@ -142,14 +142,14 @@ import snow.input.Keycodes;
 		var engine = this.getEngine();
 		
 		if (this._onMouseDown == null) {
-			this._onMouseDown = function(x:Float, y:Float) {					
+			this._onMouseDown = function(x:Float, y:Float, button:Int) {					
 				previousPosition = {
 					x: x,
 					y: y
 				};
 			};
 			
-			this._onMouseUp = function() {
+			this._onMouseUp = function(x:Float, y:Float, button:Int) {
 				previousPosition = null;
 			};
 			
@@ -176,7 +176,7 @@ import snow.input.Keycodes;
 			};
 			
 			this._wheel = function(delta:Float) {
-				var _delta = delta / 3;
+				var _delta = delta / wheelPrecision;
 				
                 this.inertialRadiusOffset += _delta;
 			};

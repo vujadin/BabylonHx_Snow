@@ -15,6 +15,7 @@ import com.babylonhx.math.Vector3;
 	public var deleted:Bool;
 	public var isDirty:Bool;
 	public var borderFactor:Float;
+	public var deletePending:Bool;
 
 	
 	public function new(vertices:Array<Int>) {
@@ -23,6 +24,7 @@ import com.babylonhx.math.Vector3;
 		this.isDirty = false;
 		this.borderFactor = 0;
 		this.vertices = vertices;
+		this.deletePending = false;
 	}
 	
 }

@@ -167,7 +167,16 @@ import com.babylonhx.mesh.AbstractMesh;
 		
 		this.currentFrame = currentFrame;
 		
-		for (key in 0...this._keys.length - 1) {
+		// Try to get a hash to find the right key
+		var startKey = Std.int(Math.max(0, Math.min(this._keys.length - 1, Math.floor(this._keys.length * (currentFrame - this._keys[0].frame) / (this._keys[this._keys.length - 1].frame - this._keys[0].frame)) - 1)));
+		
+		if (this._keys[startKey].frame >= currentFrame) {
+			while (startKey - 1 >= 0 && this._keys[startKey].frame >= currentFrame) {
+				startKey--;
+			}
+		}
+		
+		for (key in startKey...this._keys.length) {
 			// for each frame, we need the key just before the frame superior
 			if (this._keys[key + 1].frame >= currentFrame) {
 				

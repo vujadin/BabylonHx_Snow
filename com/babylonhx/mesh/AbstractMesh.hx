@@ -58,7 +58,7 @@ import com.babylonhx.physics.PhysicsBodyCreationOptions;
 	public var infiniteDistance:Bool = false;
 	public var isVisible:Bool = true;
 	
-	private var _isPickable:Bool = false;
+	private var _isPickable:Bool = true;
 	public var isPickable(get, set):Bool;
 	private function get_isPickable():Bool {
 		return _isPickable;
@@ -198,7 +198,7 @@ import com.babylonhx.physics.PhysicsBodyCreationOptions;
 
 	public function new(name:String, scene:Scene) {
 		super(name, scene);
-		scene.meshes.push(this);
+		scene.addMesh(this);
 	}
 
 	// Methods
@@ -943,14 +943,11 @@ import com.babylonhx.physics.PhysicsBodyCreationOptions;
 		this.releaseSubMeshes();
 		
 		// Remove from scene
-		var index = this.getScene().meshes.indexOf(this);
-		if (index != -1) {
-			// Remove from the scene if mesh found 
-			this.getScene().meshes.splice(index, 1);
-		}
+		this.getScene().removeMesh(this);
 		
 		if (!doNotRecurse) {
 			// Particles
+			var index:Int = 0;
 			while(index < this.getScene().particleSystems.length) {
 				if (this.getScene().particleSystems[index].emitter == this) {
 					this.getScene().particleSystems[index].dispose();
@@ -975,6 +972,8 @@ import com.babylonhx.physics.PhysicsBodyCreationOptions;
 				}
 			}
 		}
+		
+		this._onAfterWorldMatrixUpdate = [];
 		
 		this._isDisposed = true;
 		

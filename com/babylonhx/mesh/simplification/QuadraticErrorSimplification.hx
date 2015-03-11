@@ -49,7 +49,6 @@ import haxe.Timer;
 			});
 		},function() {
 			Tools.delay(function() {
-				this._reconstructedMesh.isVisible = true;
 				successCallback(this._reconstructedMesh);
 			}, 0);
 		});
@@ -147,7 +146,19 @@ import haxe.Timer;
 								continue;
 							}
 							
-							if (delTr.length == 2 || delTr[0] == delTr[1]) {
+							if (deleted0.indexOf(true) < 0 || deleted1.indexOf(true) < 0) {
+                                continue;
+							}
+								
+                            var uniqueArray:Array<DecimationTriangle> = [];
+							for(deletedT in delTr) {
+                                if (uniqueArray.indexOf(deletedT) == -1) {
+                                    deletedT.deletePending = true;
+                                    uniqueArray.push(deletedT);
+                                }
+                            }
+							
+                            if (uniqueArray.length % 2 != 0) {
 								continue;
 							}
 							
@@ -160,13 +171,6 @@ import haxe.Timer;
 							}
 							v0.q = v1.q.add(v0.q);
 							
-							if (deleted0.indexOf(true) < 0 || deleted1.indexOf(true) < 0) {
-								continue;
-							}
-							
-							if (p.equals(v0.position)) {
-								continue;
-							}
 							v0.position = p;
 							
 							var tStart = this.references.length;
@@ -315,7 +319,7 @@ import haxe.Timer;
 				this.vertices[dst].normal = this.vertices[i].normal;
 				this.vertices[dst].uv = this.vertices[i].uv;
 				this.vertices[dst].color = this.vertices[i].color;
-				newVerticesOrder.push(i);
+				newVerticesOrder.push(dst);
 				dst++;
 			}
 		}
@@ -445,7 +449,7 @@ import haxe.Timer;
 				continue;
 			}
 			
-			if (deletedArray[i]) {
+			if (deletedArray[i] && t.deletePending) {
 				t.deleted = true;
 				newDeleted++;
 				continue;

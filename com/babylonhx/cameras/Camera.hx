@@ -34,7 +34,7 @@ import com.babylonhx.tools.SmartArray;
 	public var inertia:Float = 0.9;
 	public var mode:Int = Camera.PERSPECTIVE_CAMERA;
 	public var isIntermediate:Bool = false;
-	public var viewport:Viewport = new Viewport(0, 0, 1.0, 1.0);
+	public var viewport:Viewport = new Viewport(0, 0, 1, 1);
 	public var subCameras:Array<Camera> = [];
 	public var layerMask:Int = 0xFFFFFFFF;
 	public var fovMode:Int = Camera.FOVMODE_VERTICAL_FIXED;
@@ -52,7 +52,7 @@ import com.babylonhx.tools.SmartArray;
 		super(name, scene);
 		
 		this.position = position;
-		scene.cameras.push(this);
+		scene.addCamera(this);
 		
 		if (scene.activeCamera == null) {
 			scene.activeCamera = this;
@@ -173,13 +173,13 @@ import com.babylonhx.tools.SmartArray;
 		
 	}
 
-	public function attachPostProcess(postProcess:PostProcess, insertAt:Int = -1):Int {
+	public function attachPostProcess(postProcess:PostProcess, ?insertAt:Int):Int {
 		if (!postProcess.isReusable() && this._postProcesses.indexOf(postProcess) > -1) {
 			trace("You're trying to reuse a post process not defined as reusable.");
 			return 0;
 		}
 		
-		if (insertAt < 0) {
+		if (insertAt == null || insertAt < 0) {
 			this._postProcesses.push(postProcess);
 			this._postProcessesTakenIndices.push(this._postProcesses.length - 1);
 			
@@ -339,8 +339,7 @@ import com.babylonhx.tools.SmartArray;
 
 	public function dispose() {
 		// Remove from scene
-		var index = this.getScene().cameras.indexOf(this);
-		this.getScene().cameras.splice(index, 1);
+		this.getScene().removeCamera(this);
 		
 		// Postprocesses
 		for (i in 0...this._postProcessesTakenIndices.length) {

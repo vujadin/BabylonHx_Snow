@@ -12,7 +12,7 @@ import org.poly2tri.SweepContext;
  * ...
  * @author Krtolica Vujadin
  */
-class PolygonMeshBuilder {
+@:expose('BABYLON.PolygonMeshBuilder') class PolygonMeshBuilder {
 
 	private var _swctx:SweepContext;
 	private var _points:PolygonPoints;

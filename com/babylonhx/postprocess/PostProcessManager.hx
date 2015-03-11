@@ -12,7 +12,7 @@ import com.babylonhx.materials.textures.BabylonTexture;
 	
 	private var _scene:Scene;
 	private var _indexBuffer:BabylonBuffer;
-	private var _vertexDeclaration:Array<Int> = [];
+	private var _vertexDeclaration:Array<Int> = [2];
 	private var _vertexStrideSize:Int = 2 * 4;
 	private var _vertexBuffer:BabylonBuffer;
 	

@@ -1,5 +1,6 @@
 package com.babylonhx.materials.textures;
 
+import com.babylonhx.Engine;
 import com.babylonhx.ISmartArrayCompatible;
 import com.babylonhx.mesh.Mesh;
 import com.babylonhx.rendering.RenderingManager;
@@ -21,6 +22,7 @@ import com.babylonhx.tools.SmartArray;
 	public var onBeforeRender:Void->Void;
 	public var onAfterRender:Void->Void;
 	public var onAfterUnbind:Void->Void;
+	public var onClear:Engine->Void;
 	public var activeCamera:Camera;
 	public var customRenderFunction:Dynamic;//SmartArray<SubMesh>->SmartArray<SubMesh>->SmartArray<SubMesh>->Void->Void;
 
@@ -106,7 +108,7 @@ import com.babylonhx.tools.SmartArray;
 		this._texture = this.getScene().getEngine().createRenderTargetTexture(size, generateMipMaps);
 	}
 
-	public function render(?useCameraPostProcess:Bool) {
+	public function render(useCameraPostProcess:Bool = false) {
 		var scene = this.getScene();
 		var engine = scene.getEngine();
 		
@@ -128,7 +130,7 @@ import com.babylonhx.tools.SmartArray;
 		if (!useCameraPostProcess || !scene.postProcessManager._prepareFrame(this._texture)) {
 			engine.bindFramebuffer(this._texture);
 		}
-				
+		
 		this._renderingManager.reset();
 		
 		var currentRenderList:Array<AbstractMesh> = this.renderList != null ? this.renderList : cast scene.getActiveMeshes().data;
@@ -137,7 +139,7 @@ import com.babylonhx.tools.SmartArray;
 			var mesh:Mesh = cast currentRenderList[meshIndex];
 			
 			if (mesh != null) {
-				if (!mesh.isReady() || (mesh.material != null && !mesh.material.isReady())) {
+				if (!mesh.isReady()) {
 					// Reset _currentRefreshId
 					this.resetRefreshCounter();
 					continue;
@@ -148,7 +150,7 @@ import com.babylonhx.tools.SmartArray;
 					
 					for (subIndex in 0...mesh.subMeshes.length) {
 						var subMesh = mesh.subMeshes[subIndex];
-						scene._activeVertices += subMesh.verticesCount;
+						scene._activeVertices += subMesh.indexCount;
 						this._renderingManager.dispatch(subMesh);
 					}
 				}
@@ -160,7 +162,11 @@ import com.babylonhx.tools.SmartArray;
 		}
 		
 		// Clear
-		engine.clear(scene.clearColor, true, true);
+		if (this.onClear != null) {
+			this.onClear(engine);
+		} else {
+			engine.clear(scene.clearColor, true, true);
+		}
 		
 		if (!this._doNotChangeAspectRatio) {
 			scene.updateTransformMatrix(true);

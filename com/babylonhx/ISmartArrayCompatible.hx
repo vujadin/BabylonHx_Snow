@@ -4,7 +4,7 @@ package com.babylonhx;
  * @author Krtolica Vujadin
  */
 
-interface ISmartArrayCompatible {
+@:expose('BABYLON.ISmartArrayCompatible') interface ISmartArrayCompatible {
 	
 	var __smartArrayFlags:Array<Int>;
   

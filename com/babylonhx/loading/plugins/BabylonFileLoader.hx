@@ -672,10 +672,24 @@ import snow.assets.AssetText;
             shadowGenerator.getShadowMap().renderList.push(mesh);
         }
 		
-        if (parsedShadowGenerator.usePoissonSampling) {
+        if (parsedShadowGenerator.usePoissonSampling != null) {
             shadowGenerator.usePoissonSampling = true;
-        } else {
-            shadowGenerator.useVarianceShadowMap = parsedShadowGenerator.useVarianceShadowMap;
+        } else if (parsedShadowGenerator.useVarianceShadowMap != null) {
+            shadowGenerator.useVarianceShadowMap = true;
+        } else if (parsedShadowGenerator.useBlurVarianceShadowMap != null) {
+            shadowGenerator.useBlurVarianceShadowMap = true;
+			
+            if (parsedShadowGenerator.blurScale != null) {
+                shadowGenerator.blurScale = parsedShadowGenerator.blurScale;
+            }
+			
+            if (parsedShadowGenerator.blurBoxOffset != null) {
+                shadowGenerator.blurBoxOffset = parsedShadowGenerator.blurBoxOffset;
+            }
+        }
+		
+        if (parsedShadowGenerator.bias != null) {
+            shadowGenerator.bias = parsedShadowGenerator.bias;
         }
 		
         return shadowGenerator;
@@ -855,7 +869,12 @@ import snow.assets.AssetText;
 		
         // Target
         if (parsedCamera.target != null) {
-            cast(camera, FreeCamera).setTarget(Vector3.FromArray(parsedCamera.target));
+			if(Std.is(camera, FreeCamera)) {
+				cast(camera, FreeCamera).setTarget(Vector3.FromArray(parsedCamera.target));
+			} else {
+				// For ArcRotateCamera
+				cast(camera, ArcRotateCamera).target = Vector3.FromArray(parsedCamera.target);
+			}
         } else {
             cast(camera, FreeCamera).rotation = Vector3.FromArray(parsedCamera.rotation);
         }
@@ -1397,7 +1416,9 @@ import snow.assets.AssetText;
 			}
 			
             for (j in 0...trigger.children.length) {
-                traverse(cast(trigger.children, Array<Dynamic>)[j], triggerParams, null, null);
+				if(!trigger.detached) {
+					traverse(cast(trigger.children, Array<Dynamic>)[j], triggerParams, null, null);
+				}
 			}
         }
     }

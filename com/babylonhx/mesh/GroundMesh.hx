@@ -21,24 +21,24 @@ import com.babylonhx.math.Ray;
 		super(name, scene);
 	}
 
-	public function optimize(chunksCount:Float):Void {
+	public function _optimize(chunksCount:Float):Void {
 		this.subdivide(this._subdivisions);
 		this.createOrUpdateSubmeshesOctree(32);
 	}
 
 	public function getHeightAtCoordinates(x:Float, z:Float):Float {
 		var ray = new Ray(new Vector3(x, this.getBoundingInfo().boundingBox.maximumWorld.y + 1, z), new Vector3(0, -1, 0));
-
+		
 		this.getWorldMatrix().invertToRef(this._worldInverse);
-
+		
 		ray = Ray.Transform(ray, this._worldInverse);
-
+		
 		var pickInfo = this.intersects(ray);
-
+		
 		if (pickInfo.hit) {
 			return pickInfo.pickedPoint.y;
 		}
-
+		
 		return 0;
 	}
 	

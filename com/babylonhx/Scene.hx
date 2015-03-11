@@ -6,11 +6,13 @@ import com.babylonhx.actions.ActionEvent;
 import com.babylonhx.animations.Animatable;
 import com.babylonhx.animations.Animation;
 import com.babylonhx.bones.Skeleton;
+import com.babylonhx.cameras.FreeCamera;
 import com.babylonhx.collisions.Collider;
 import com.babylonhx.collisions.PickingInfo;
 import com.babylonhx.culling.octrees.Octree;
 import com.babylonhx.layer.Layer;
 import com.babylonhx.lensflare.LensFlareSystem;
+import com.babylonhx.lights.HemisphericLight;
 import com.babylonhx.lights.Light;
 import com.babylonhx.materials.Material;
 import com.babylonhx.materials.MultiMaterial;
@@ -77,17 +79,17 @@ import haxe.Timer;
 	public var animationsEnabled:Bool = true;
 
 	// Pointers
-	private var _onPointerMove:Dynamic->Void;	// MouseEvent->Void
-	private var _onPointerDown:Dynamic->Void;	// MouseEvent->Void
-	public var onPointerDown:Dynamic->PickingInfo->Void; // MouseEvent->PickingInfo->Void
+	public var _onPointerMove:Dynamic;	// MouseEvent->Void
+	public var _onPointerDown:Dynamic;	// MouseEvent->Void
+	public var onPointerDown:Dynamic;   // MouseEvent->PickingInfo->Void
 	public var cameraToUseForPointers:Camera = null; // Define this parameter if you are using multiple cameras and you want to specify which one should be used for pointer position
 	private var _pointerX:Int;
 	private var _pointerY:Int;
 	private var _meshUnderPointer:AbstractMesh; 
 
 	// Keyboard
-	private var _onKeyDown:Dynamic->Void;	// Event->Void
-	private var _onKeyUp:Dynamic->Void;		// Event->Void
+	private var _onKeyDown:Dynamic;		// Event->Void
+	private var _onKeyUp:Dynamic;		// Event->Void
 
 	// Fog
 	public var fogEnabled:Bool = true;
@@ -101,14 +103,20 @@ import haxe.Timer;
 	public var shadowsEnabled:Bool = true;
 	public var lightsEnabled:Bool = true;
 	public var lights:Array<Light> = [];
+	public var onNewLightAdded:Light->Int->Scene->Void;
+    public var onLightRemoved:Light->Void;
 
 	// Cameras
 	public var cameras:Array<Camera> = [];
+	public var onNewCameraAdded:Camera->Int->Scene->Void;
+	public var onCameraRemoved:Camera->Void;
 	public var activeCameras:Array<Camera> = [];
 	public var activeCamera:Camera;
 
 	// Meshes
 	public var meshes:Array<AbstractMesh> = [];
+	public var onNewMeshAdded:AbstractMesh->Int->Scene->Void;
+    public var onMeshRemoved:AbstractMesh->Void;
 
 	// Geometries
 	private var _geometries:Array<Geometry> = [];
@@ -126,6 +134,7 @@ import haxe.Timer;
 	public var particleSystems:Array<ParticleSystem> = [];
 
 	// Sprites
+	public var spritesEnabled:Bool = true;
 	public var spriteManagers:Array<SpriteManager> = [];
 
 	// Layers
@@ -150,6 +159,7 @@ import haxe.Timer;
 
 	// Customs render targets
 	public var renderTargetsEnabled:Bool = true;
+	public var dumpNextRenderTargets:Bool = false;
 	public var customRenderTargets:Array<RenderTargetTexture> = [];
 
 	// Delay loading
@@ -251,6 +261,9 @@ import haxe.Timer;
 		this.attachControl();
 		
 		//this._debugLayer = new DebugLayer(this);
+		
+		//simplification queue
+		this.simplificationQueue = new SimplificationQueue();
 	}
 
 	// Properties 
@@ -337,34 +350,38 @@ import haxe.Timer;
 	public function getRenderId():Int {
 		return this._renderId;
 	}
+	
+	public function incrementRenderId() {
+		this._renderId++;
+	}
 
-	private function _updatePointerPosition(evt:Dynamic/*PointerEvent*/) {
-		/*var canvasRect = this._engine.getRenderingCanvasClientRect();
-
-		this._pointerX = evt.clientX - canvasRect.left;
-		this._pointerY = evt.clientY - canvasRect.top;
-
+	private function _updatePointerPosition(x:Int, y:Int) {
+		/*var canvasRect = this._engine.getRenderingCanvasClientRect();*/
+		
+		this._pointerX = x;// evt.clientX - canvasRect.left;
+		this._pointerY = y;// evt.clientY - canvasRect.top;
+		
 		if (this.cameraToUseForPointers != null) {
 			this._pointerX = this._pointerX - this.cameraToUseForPointers.viewport.x * this._engine.getRenderWidth();
 			this._pointerY = this._pointerY - this.cameraToUseForPointers.viewport.y * this._engine.getRenderHeight();
-		}*/
+		}
 	}
 
 	// Pointers handling
 	public function attachControl() {
-		/*this._onPointerMove = function(evt:Dynamic) {
-			var canvas = this._engine.getRenderingCanvas();
-
-			this._updatePointerPosition(evt);
-
-			var pickResult = this.pick(this._pointerX, this._pointerY,
-				function(mesh:AbstractMesh):Bool { return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasPointerTriggers; },
+		this._onPointerMove = function(x:Int, y:Int) {
+			//var canvas = this._engine.getRenderingCanvas();
+			
+			this._updatePointerPosition(x, y);
+			
+			var pickResult:PickingInfo = this.pick(this._pointerX, this._pointerY,
+				function(mesh:AbstractMesh):Bool { return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager != null && mesh.actionManager.hasPointerTriggers; },
 				false,
 				this.cameraToUseForPointers);
-
+				
 			if (pickResult.hit) {
 				this._meshUnderPointer = pickResult.pickedMesh;
-
+				
 				this.setPointerOverMesh(pickResult.pickedMesh);
 				//canvas.style.cursor = "pointer";
 			} else {
@@ -373,62 +390,66 @@ import haxe.Timer;
 				this._meshUnderPointer = null;
 			}
 		};
-
-		this._onPointerDown = function(evt:Dynamic) {
-
+		
+		this._onPointerDown = function(x:Int, y:Int, button:Int) {
+			
 			var predicate = null;
-
-			if (!this.onPointerDown) {
-				predicate = function(mesh:AbstractMesh):Bool => {
-					return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager && mesh.actionManager.hasPickTriggers;
+			
+			if (this.onPointerDown == null) {
+				predicate = function(mesh:AbstractMesh):Bool {
+					return mesh.isPickable && mesh.isVisible && mesh.isReady() && mesh.actionManager != null && mesh.actionManager.hasPickTriggers;
 				};
 			}
-
-			this._updatePointerPosition(evt);
-
-			var pickResult = this.pick(this._pointerX, this._pointerY, predicate, false, this.cameraToUseForPointers);
-
+			
+			this._updatePointerPosition(x, y);
+			
+			var pickResult:PickingInfo = this.pick(this._pointerX, this._pointerY, predicate, false, this.cameraToUseForPointers);
+			
 			if (pickResult.hit) {
-				if (pickResult.pickedMesh.actionManager) {
-					switch (evt.button) {
+				if (pickResult.pickedMesh.actionManager != null) {
+					switch (button) {
 						case 0:
 							pickResult.pickedMesh.actionManager.processTrigger(ActionManager.OnLeftPickTrigger, ActionEvent.CreateNew(pickResult.pickedMesh));
-							break;
+							
 						case 1:
 							pickResult.pickedMesh.actionManager.processTrigger(ActionManager.OnCenterPickTrigger, ActionEvent.CreateNew(pickResult.pickedMesh));
-							break;
+							
 						case 2:
 							pickResult.pickedMesh.actionManager.processTrigger(ActionManager.OnRightPickTrigger, ActionEvent.CreateNew(pickResult.pickedMesh));
-							break;
+						
 					}
+					
 					pickResult.pickedMesh.actionManager.processTrigger(ActionManager.OnPickTrigger, ActionEvent.CreateNew(pickResult.pickedMesh));
 				}
 			}
-
-			if (this.onPointerDown) {
-				this.onPointerDown(evt, pickResult);
+			
+			if (this.onPointerDown != null) {
+				this.onPointerDown(x, y, button, pickResult);
 			}
 		};
-
-		this._onKeyDown = (evt:Event) => {
-			if (this.actionManager) {
-				this.actionManager.processTrigger(ActionManager.OnKeyDownTrigger, ActionEvent.CreateNewFromScene(this, evt));
+		
+		this._onKeyDown = function(keycode:Int) {
+			if (this.actionManager != null) {
+				this.actionManager.processTrigger(ActionManager.OnKeyDownTrigger, ActionEvent.CreateNewFromScene(this, keycode));
 			}
 		};
-
-		this._onKeyUp = (evt:Event) => {
-			if (this.actionManager) {
-				this.actionManager.processTrigger(ActionManager.OnKeyUpTrigger, ActionEvent.CreateNewFromScene(this, evt));
+		
+		this._onKeyUp = function(keycode:Int) {
+			if (this.actionManager != null) {
+				this.actionManager.processTrigger(ActionManager.OnKeyUpTrigger, ActionEvent.CreateNewFromScene(this, keycode));
 			}
 		};
-
-
-		var eventPrefix = Tools.GetPointerPrefix();
+		
+		/*var eventPrefix = Tools.GetPointerPrefix();
 		this._engine.getRenderingCanvas().addEventListener(eventPrefix + "move", this._onPointerMove, false);
-		this._engine.getRenderingCanvas().addEventListener(eventPrefix + "down", this._onPointerDown, false);
-
-		window.addEventListener("keydown", this._onKeyDown, false);
-		window.addEventListener("keyup", this._onKeyUp, false);*/
+		this._engine.getRenderingCanvas().addEventListener(eventPrefix + "down", this._onPointerDown, false);*/
+		Main.mouseDown.push(this._onPointerDown);
+		Main.mouseMove.push(this._onPointerMove);
+		
+		//window.addEventListener("keydown", this._onKeyDown, false);
+		//window.addEventListener("keyup", this._onKeyUp, false);		
+		Main.keyDown.push(this._onKeyDown);
+		Main.keyUp.push(this._onKeyUp);
 	}
 
 	public function detachControl() {
@@ -532,7 +553,7 @@ import haxe.Timer;
 	}
 
 	// Animations
-	public function beginAnimation(target:Dynamic, from:Int, to:Int, loop:Bool = false/*?loop:Bool*/, speedRatio:Float = 1.0, ?onAnimationEnd:Void->Void, ?animatable:Animatable):Animatable {
+	public function beginAnimation(target:Dynamic, from:Int, to:Int, loop:Bool = false, speedRatio:Float = 1.0, ?onAnimationEnd:Void->Void, ?animatable:Animatable):Animatable {
 		this.stopAnimation(target);
 		
 		if (animatable == null) {
@@ -555,11 +576,7 @@ import haxe.Timer;
 		return animatable;
 	}
 
-	public function beginDirectAnimation(target:Dynamic, animations:Array<Animation>, from:Int, to:Int, loop:Bool = false/*?loop:Bool*/, ?speedRatio:Float, ?onAnimationEnd:Void->Void):Animatable {
-		if (speedRatio == null) {
-			speedRatio = 1.0;
-		}
-		
+	public function beginDirectAnimation(target:Dynamic, animations:Array<Animation>, from:Int, to:Int, loop:Bool = false, ?speedRatio:Float = 1.0, ?onAnimationEnd:Void->Void):Animatable {
 		var animatable = new Animatable(this, target, from, to, loop, speedRatio, onAnimationEnd, animations);
 		
 		return animatable;
@@ -627,6 +644,65 @@ import haxe.Timer;
 	}
 
 	// Methods
+	
+	public function addMesh(newMesh:AbstractMesh) {
+		var position = this.meshes.push(newMesh);
+		if (this.onNewMeshAdded != null) {
+			this.onNewMeshAdded(newMesh, position, this);
+		}
+	}
+
+	public function removeMesh(toRemove:AbstractMesh):Int {
+		var index = this.meshes.indexOf(toRemove);
+		if (index != -1) {
+			// Remove from the scene if mesh found 
+			this.meshes.splice(index, 1);
+		}
+		if (this.onMeshRemoved != null) {
+			this.onMeshRemoved(toRemove);
+		}
+		return index;
+	}
+
+	public function removeLight(toRemove:Light):Int {
+		var index = this.lights.indexOf(toRemove);
+		if (index != -1) {
+			// Remove from the scene if mesh found 
+			this.lights.splice(index, 1);
+		}
+		if (this.onLightRemoved != null) {
+			this.onLightRemoved(toRemove);
+		}
+		return index;
+	}
+
+	public function removeCamera(toRemove:Camera):Int {
+		var index = this.cameras.indexOf(toRemove);
+		if (index != -1) {
+			// Remove from the scene if mesh found 
+			this.cameras.splice(index, 1);
+		}
+		if (this.onCameraRemoved != null) {
+			this.onCameraRemoved(toRemove);
+		}
+		return index;
+	}
+
+	public function addLight(newLight:Light) {
+		var position = this.lights.push(newLight);
+		if (this.onNewLightAdded != null) {
+			this.onNewLightAdded(newLight, position, this);
+		}
+	}
+
+	public function addCamera(newCamera:Camera) {
+		var position = this.cameras.push(newCamera);
+		if (this.onNewCameraAdded != null) {
+			this.onNewCameraAdded(newCamera, position, this);
+		}
+	}
+	
+	
 	public function setActiveCameraByID(id:String):Camera {
 		var camera = this.getCameraByID(id);
 		
@@ -719,7 +795,7 @@ import haxe.Timer;
 		return null;
 	}
 
-	public function pushGeometry(geometry:Geometry, force:Bool = false/*?force:Bool*/):Bool {
+	public function pushGeometry(geometry:Geometry, force:Bool = false):Bool {
 		if (!force && this.getGeometryByID(geometry.id) != null) {
 			return false;
 		}
@@ -988,7 +1064,7 @@ import haxe.Timer;
 		}
 	}
 
-	public function updateTransformMatrix(force:Bool = false/*?force:Bool*/) {
+	public function updateTransformMatrix(force:Bool = false) {
 		this.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(force));
 	}
 
@@ -1024,7 +1100,7 @@ import haxe.Timer;
 		for (skeletonIndex in 0...this._activeSkeletons.length) {
 			var skeleton = this._activeSkeletons.data[skeletonIndex];			
 			skeleton.prepare();			
-			this._activeBones += skeleton.bones.length;
+			//this._activeBones += skeleton.bones.length;
 		}
 		
 		// Render targets
@@ -1035,7 +1111,7 @@ import haxe.Timer;
 				var renderTarget = this._renderTargets.data[renderIndex];
 				if (renderTarget._shouldRender()) {
 					this._renderId++;
-					renderTarget.render();
+					renderTarget.render(false);
 				}
 			}
 			//Tools.EndPerformanceCounter("Render targets", this._renderTargets.length > 0);
@@ -1182,13 +1258,18 @@ import haxe.Timer;
 			this.actionManager.processTrigger(ActionManager.OnEveryFrameTrigger, null);
 		}
 		
+		//Simplification Queue
+		if (!this.simplificationQueue.running) {
+			this.simplificationQueue.executeNext();
+		}
+		
 		// Before render
 		if (this.beforeRender != null) {
 			this.beforeRender();
 		}
 		
-		for (callbackIndex in 0...this._onBeforeRenderCallbacks.length) {
-			this._onBeforeRenderCallbacks[callbackIndex]();
+		for (callback in this._onBeforeRenderCallbacks) {
+			callback();
 		}
 		
 		// Animations
@@ -1226,7 +1307,7 @@ import haxe.Timer;
 					// Camera
 					this.updateTransformMatrix();
 					
-					renderTarget.render();
+					renderTarget.render(false);
 				}
 			}
 			//Tools.EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);
@@ -1243,7 +1324,6 @@ import haxe.Timer;
 		// Procedural textures
 		if (this.proceduralTexturesEnabled) {
 			//Tools.StartPerformanceCounter("Procedural textures", this._proceduralTextures.length > 0);
-			// TODO
 			for (proceduralIndex in 0...this._proceduralTextures.length) {
 				var proceduralTexture = this._proceduralTextures[proceduralIndex];
 				if (proceduralTexture._shouldRender()) {
@@ -1314,6 +1394,10 @@ import haxe.Timer;
 		
 		this._toBeDisposed.reset();
 		
+		if (this.dumpNextRenderTargets) {
+			this.dumpNextRenderTargets = false;
+		}
+		
 		//Tools.EndPerformanceCounter("Scene rendering");
 		//this._lastFrameDuration = Tools.Now() - startDate;
 	}
@@ -1361,10 +1445,10 @@ import haxe.Timer;
 		
 		// Detach cameras
 		/*var canvas = this._engine.getRenderingCanvas();
-		var index;
-		for (index = 0; index < this.cameras.length; index++) {
-			this.cameras[index].detachControl(canvas);
-		}*/
+		var index;*/
+		for (index in 0...this.cameras.length) {
+			this.cameras[index].detachControl(this);
+		}
 		
 		// Release lights
 		while (this.lights.length > 0) {
@@ -1470,11 +1554,7 @@ import haxe.Timer;
 	}
 
 	// Octrees
-	public function createOrUpdateSelectionOctree(maxCapacity:Int = 64, maxDepth:Int = 2):Octree<AbstractMesh> {
-		if (this._selectionOctree == null) {
-			this._selectionOctree = new Octree<AbstractMesh>(Octree.CreationFuncForMeshes, maxCapacity, maxDepth);
-		}
-		
+	public function getWorldExtends():Dynamic {
 		var min = new Vector3(Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY, Math.POSITIVE_INFINITY);
 		var max = new Vector3(Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY, Math.NEGATIVE_INFINITY);
 		for (index in 0...this.meshes.length) {
@@ -1488,8 +1568,21 @@ import haxe.Timer;
 			Tools.CheckExtends(maxBox, min, max);
 		}
 		
+		return {
+			min: min,
+			max: max
+		};
+	}
+		
+	public function createOrUpdateSelectionOctree(maxCapacity:Int = 64, maxDepth:Int = 2):Octree<AbstractMesh> {
+		if (this._selectionOctree == null) {
+			this._selectionOctree = new Octree<AbstractMesh>(Octree.CreationFuncForMeshes, maxCapacity, maxDepth);
+		}
+		
+		var worldExtends = this.getWorldExtends();
+		
 		// Update octree
-		this._selectionOctree.update(min, max, this.meshes);
+		this._selectionOctree.update(worldExtends.min, worldExtends.max, this.meshes);
 		
 		return this._selectionOctree;
 	}
@@ -1534,11 +1627,13 @@ import haxe.Timer;
 			var ray = rayFunction(world);
 			
 			var result = mesh.intersects(ray, fastCheck);
-			if (result == null || !result.hit)
+			if (result == null || !result.hit) {
 				continue;
+			}
 				
-			if (!fastCheck && pickingInfo != null && result.distance >= pickingInfo.distance)
+			if (!fastCheck && pickingInfo != null && result.distance >= pickingInfo.distance) {
 				continue;
+			}
 				
 			pickingInfo = result;
 			
@@ -1660,6 +1755,28 @@ import haxe.Timer;
 			var mesh:AbstractMesh = cast compound.parts[index].mesh;
 			mesh._physicImpostor = PhysicsEngine.NoImpostor;
 			this._physicsEngine._unregisterMesh(mesh);
+		}
+	}
+	
+	// Misc.
+	public function createDefaultCameraOrLight() {
+		// Light
+		if (this.lights.length == 0) {
+			new HemisphericLight("default light", Vector3.Up(), this);
+		}
+		
+		// Camera
+		if (this.activeCamera == null) {
+			var camera = new FreeCamera("default camera", Vector3.Zero(), this);
+			
+			// Compute position
+			var worldExtends = this.getWorldExtends();
+			var worldCenter:Vector3 = cast worldExtends.min.add(worldExtends.max.subtract(worldExtends.min).scale(0.5));
+			
+			camera.position = new Vector3(worldCenter.x, worldCenter.y, worldExtends.min.z - (worldExtends.max.z - worldExtends.min.z));
+			camera.setTarget(worldCenter);
+			
+			this.activeCamera = camera;
 		}
 	}
 

@@ -116,6 +116,8 @@ import com.babylonhx.tools.Tools;
 		var engine:Engine = scene.getEngine();
 		var defines:Array<String> = [];
 		var fallbacks:EffectFallbacks = new EffectFallbacks();
+		var needNormals:Bool = false;
+		var needUVs:Bool = false;
 		
 		// Textures
 		if (scene.texturesEnabled) {
@@ -123,6 +125,7 @@ import com.babylonhx.tools.Tools;
 				if (!this.diffuseTexture.isReady()) {
 					return false;
 				} else {
+					needUVs = true;
 					defines.push("#define DIFFUSE");
 				}
 			}
@@ -131,6 +134,7 @@ import com.babylonhx.tools.Tools;
 				if (!this.ambientTexture.isReady()) {
 					return false;
 				} else {
+					needUVs = true;
 					defines.push("#define AMBIENT");
 				}
 			}
@@ -139,6 +143,7 @@ import com.babylonhx.tools.Tools;
 				if (!this.opacityTexture.isReady()) {
 					return false;
 				} else {
+					needUVs = true;
 					defines.push("#define OPACITY");
 					
 					if (this.opacityTexture.getAlphaFromRGB) {
@@ -151,6 +156,8 @@ import com.babylonhx.tools.Tools;
 				if (!this.reflectionTexture.isReady()) {
 					return false;
 				} else {
+					needNormals = true;
+					needUVs = true;
 					defines.push("#define REFLECTION");
 					fallbacks.addFallback(0, "REFLECTION");
 				}
@@ -160,6 +167,7 @@ import com.babylonhx.tools.Tools;
 				if (!this.emissiveTexture.isReady()) {
 					return false;
 				} else {
+					needUVs = true;
 					defines.push("#define EMISSIVE");
 				}
 			}
@@ -168,6 +176,7 @@ import com.babylonhx.tools.Tools;
 				if (!this.specularTexture.isReady()) {
 					return false;
 				} else {
+					needUVs = true;
 					defines.push("#define SPECULAR");
 					fallbacks.addFallback(0, "SPECULAR");
 				}
@@ -178,6 +187,7 @@ import com.babylonhx.tools.Tools;
 			if (!this.bumpTexture.isReady()) {
 				return false;
 			} else {
+				needUVs = true;
 				defines.push("#define BUMP");
 				fallbacks.addFallback(0, "BUMP");
 			}
@@ -252,6 +262,7 @@ import com.babylonhx.tools.Tools;
 					continue;
 				}
 				
+				needNormals = true;
 				defines.push("#define LIGHT" + lightIndex);
 				
 				if (lightIndex > 0) {
@@ -340,21 +351,28 @@ import com.babylonhx.tools.Tools;
 					fresnelRank++;
 				}
 				
+				needNormals = true;
 				defines.push("#define FRESNEL");
 				fallbacks.addFallback(fresnelRank - 1, "FRESNEL");
 			}
 		}
 		
 		// Attribs
-		var attribs:Array<String> = [VertexBuffer.PositionKind, VertexBuffer.NormalKind];
+		var attribs:Array<String> = [VertexBuffer.PositionKind];
 		if (mesh != null) {
-			if (mesh.isVerticesDataPresent(VertexBuffer.UVKind)) {
-				attribs.push(VertexBuffer.UVKind);
-				defines.push("#define UV1");
+			if (needNormals && mesh.isVerticesDataPresent(VertexBuffer.NormalKind)) {
+				attribs.push(VertexBuffer.NormalKind);
+				defines.push("#define NORMAL");
 			}
-			if (mesh.isVerticesDataPresent(VertexBuffer.UV2Kind)) {
-				attribs.push(VertexBuffer.UV2Kind);
-				defines.push("#define UV2");
+			if (needUVs) {
+				if (mesh.isVerticesDataPresent(VertexBuffer.UVKind)) {
+					attribs.push(VertexBuffer.UVKind);
+					defines.push("#define UV1");
+				}
+				if (mesh.isVerticesDataPresent(VertexBuffer.UV2Kind)) {
+					attribs.push(VertexBuffer.UV2Kind);
+					defines.push("#define UV2");
+				}
 			}
 			if (mesh.useVertexColors && mesh.isVerticesDataPresent(VertexBuffer.ColorKind)) {
 				attribs.push(VertexBuffer.ColorKind);
@@ -587,14 +605,15 @@ import com.babylonhx.tools.Tools;
 					if (mesh.receiveShadows && shadowGenerator != null) {
 						this._effect.setMatrix("lightMatrix" + lightIndex, shadowGenerator.getTransformMatrix());
                             this._effect.setTexture("shadowSampler" + lightIndex, shadowGenerator.getShadowMapForRendering());
-                            this._effect.setFloat4("shadowsInfo" + lightIndex, shadowGenerator.getDarkness(), shadowGenerator.getShadowMap().getSize().width, shadowGenerator.getBias(), shadowGenerator.getLight().getVSMOffset());
+                            this._effect.setFloat4("shadowsInfo" + lightIndex, shadowGenerator.getDarkness(), shadowGenerator.getShadowMap().getSize().width, shadowGenerator.bias, shadowGenerator.getLight().getVSMOffset());
 					}
 				}
 				
 				lightIndex++;
 				
-				if (lightIndex == maxSimultaneousLights)
+				if (lightIndex == maxSimultaneousLights) {
 					break;
+				}
 			}
 		}
 		

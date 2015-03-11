@@ -30,7 +30,7 @@ import com.babylonhx.mesh.AbstractMesh;
 	public function new(name:String, scene:Scene) {
 		super(name, scene);
 		
-		scene.lights.push(this);
+		scene.addLight(this);
 	}
 
 	public function getShadowGenerator():ShadowGenerator {
@@ -90,7 +90,7 @@ import com.babylonhx.mesh.AbstractMesh;
 		}
 		
 		// Remove from scene
-		this.getScene().lights.remove(this);
+		this.getScene().removeLight(this);
 	}
 	
 }

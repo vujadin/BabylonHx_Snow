@@ -15,6 +15,7 @@ import com.babylonhx.mesh.VertexBuffer;
 import com.babylonhx.math.Viewport;
 import com.babylonhx.postprocess.PostProcess;
 import com.babylonhx.tools.Tools;
+import haxe.CallStack;
 import snow.assets.AssetImage;
 import snow.Snow;
 import snow.utils.UInt8Array;
@@ -304,18 +305,18 @@ import js.Browser;
 
 	public function getRenderWidth():Int {
 		// TODO: Snow and Kha ...
-		if (this._currentRenderTarget != null) {
+		/*if (this._currentRenderTarget != null) {
 			return Std.int(this._currentRenderTarget._width);
-		}
+		}*/
 		
 		return Std.int(app.app.window.width);
 	}
 
 	public function getRenderHeight():Int {
 		// TODO: Snow and Kha ...
-		if (this._currentRenderTarget != null) {
+		/*if (this._currentRenderTarget != null) {
 			return Std.int(this._currentRenderTarget._height);
-		}
+		}*/
 		
 		return Std.int(app.app.window.height);
 	}
@@ -835,36 +836,44 @@ import js.Browser;
     }
 
 	inline public function enableEffect(effect:Effect) {
-		if (!(effect == null || effect.getAttributesCount() == 0 || this._currentEffect == effect)) {
-			this._vertexAttribArrays = this._vertexAttribArrays != null ? this._vertexAttribArrays : [];
-			
-			// Use program
-			GL.useProgram(effect.getProgram());
-			
-			for (i in 0...this._vertexAttribArrays.length) {
-				if (i > GL.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArrays[i]) {
-					continue;
-				}
-				this._vertexAttribArrays[i] = false;
-				GL.disableVertexAttribArray(i);
+		if (effect == null || effect.getAttributesCount() == 0 || this._currentEffect == effect) {
+			if (effect != null && effect.onBind != null) {
+				effect.onBind(effect);
 			}
-			
-			var attributesCount = effect.getAttributesCount();
-			for (index in 0...attributesCount) {
-				// Attributes
-				var order = effect.getAttributeLocation(index);
-				
-				if (order >= 0) {
-					this._vertexAttribArrays[order] = true;
-					GL.enableVertexAttribArray(order);
-				}
+			return;
+		}
+		
+		this._vertexAttribArrays = this._vertexAttribArrays != null ? this._vertexAttribArrays : [];
+		
+		// Use program
+		GL.useProgram(effect.getProgram());
+		
+		for (i in 0...this._vertexAttribArrays.length) {
+			if (i > GL.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArrays[i]) {
+				continue;
 			}
-			
-			this._currentEffect = effect;
+			this._vertexAttribArrays[i] = false;
+			GL.disableVertexAttribArray(i);
+		}
+		
+		var attributesCount = effect.getAttributesCount();
+		for (index in 0...attributesCount) {
+			// Attributes
+			var order = effect.getAttributeLocation(index);
+			if (order >= 0) {
+				this._vertexAttribArrays[order] = true;
+				GL.enableVertexAttribArray(order);
+			}
+		}
+		
+		this._currentEffect = effect;
+		
+		if (effect.onBind != null) {
+			effect.onBind(effect);
 		}	
 	}
 
-	inline public function setArray(uniform:GLUniformLocation, array:Array<Float>) {			
+	inline public function setArray(uniform:GLUniformLocation, array:Array<Float>) {
 		GL.uniform1fv(uniform, new Float32Array(array));
 	}
 	
@@ -1116,7 +1125,7 @@ import js.Browser;
 						this._workingCanvas = getScaled(img, potWidth, potHeight);
 					}*/
 							
-					GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, img.image.width, img.image.height, 0, GL.RGBA, GL.UNSIGNED_BYTE, img.image.data);
+					GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, potWidth, potHeight, 0, GL.RGBA, GL.UNSIGNED_BYTE, img.image.data);
 					
 					if (onLoad != null) {
 						onLoad();
@@ -1207,14 +1216,6 @@ import js.Browser;
 		width = Tools.GetExponantOfTwo(width, this._caps.maxTextureSize);
 		height = Tools.GetExponantOfTwo(height, this._caps.maxTextureSize);
 		
-		GL.bindTexture(GL.TEXTURE_2D, texture.data);
-		
-		var filters = getSamplingParameters(samplingMode, generateMipMaps);
-		
-		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, filters.mag);
-		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, filters.min);
-		GL.bindTexture(GL.TEXTURE_2D, null);
-		
 		this._activeTexturesCache = [];
 		texture._baseWidth = width;
 		texture._baseHeight = height;
@@ -1223,10 +1224,23 @@ import js.Browser;
 		texture.isReady = false;
 		texture.generateMipMaps = generateMipMaps;
 		texture.references = 1;
+		texture.samplingMode = samplingMode;
+		
+		this.updateTextureSamplingMode(samplingMode, texture);
 		
 		this._loadedTexturesCache.push(texture);
 		
 		return texture;
+	}
+	
+	public function updateTextureSamplingMode(samplingMode:Int, texture:BabylonTexture) {
+		var filters = getSamplingParameters(samplingMode, texture.generateMipMaps);
+		
+		GL.bindTexture(GL.TEXTURE_2D, texture.data);
+		
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, filters.mag);
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, filters.min);
+		GL.bindTexture(GL.TEXTURE_2D, null);
 	}
 
 	#if (nme || openfl)
@@ -1320,7 +1334,6 @@ import js.Browser;
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, filters.min);
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
-		trace(width + " , " + height);
 		GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, width, height, 0, GL.RGBA, getWebGLTextureType(type), null);
 		
 		var depthBuffer:GLRenderbuffer = null;
@@ -1408,9 +1421,9 @@ import js.Browser;
 			var imgs:Array<AssetImage> = [];
 			
 			function _setTex(img:AssetImage, index:Int) {					
-				var potWidth = Tools.GetExponantOfTwo(img.image.width, this._caps.maxTextureSize);
+				/*var potWidth = Tools.GetExponantOfTwo(img.image.width, this._caps.maxTextureSize);
 				var potHeight = Tools.GetExponantOfTwo(img.image.height, this._caps.maxTextureSize);
-				var isPot = (img.image.width == potWidth && img.image.height == potHeight);
+				var isPot = (img.image.width == potWidth && img.image.height == potHeight);*/
 				this._workingCanvas = img;
 					
 				GL.texImage2D(faces[index], 0, GL.RGBA, this._workingCanvas.image.width, this._workingCanvas.image.height, 0, GL.RGBA, GL.UNSIGNED_BYTE, img.image.data);
@@ -1517,7 +1530,7 @@ import js.Browser;
 	}
 
 	public function setTextureFromPostProcess(channel:Int, postProcess:PostProcess) {
-		this._bindTexture(channel, postProcess._textures.data[postProcess._currentRenderTextureInd]);
+		this._bindTexture(channel, postProcess._textures.data[postProcess._currentRenderTextureId]);
 	}
 
 	public function setTexture(channel:Int, texture:BaseTexture) {
@@ -1713,11 +1726,7 @@ import js.Browser;
         var engine = scene.getEngine();
         var potWidth = Tools.GetExponantOfTwo(width, engine.getCaps().maxTextureSize);
         var potHeight = Tools.GetExponantOfTwo(height, engine.getCaps().maxTextureSize);
-		
-		#if !js
-		
-		#end
-		
+				
         GL.bindTexture(GL.TEXTURE_2D, texture.data);
 		#if js
         GL.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, invertY == null ? 1 : (invertY ? 1 : 0));

@@ -49,7 +49,7 @@ import com.babylonhx.tools.Tools;
 	}
 
 	private function _renderSprites(index:Int) {
-		if (this._scene.spriteManagers.length == 0) {
+		if (!this._scene.spritesEnabled || this._scene.spriteManagers.length == 0) {
 			return;
 		}
 		
@@ -66,7 +66,7 @@ import com.babylonhx.tools.Tools;
 		this._scene._spritesDuration += Tools.Now() - beforeSpritessDate;
 	}
 
-	private function _clearDepthBuffer():Void {
+	private function _clearDepthBuffer() {
 		if (this._depthBufferAlreadyCleaned) {
 			return;
 		}
@@ -107,7 +107,7 @@ import com.babylonhx.tools.Tools;
 		}
 	}
 
-	public function reset():Void {
+	public function reset() {
 		for (rg in this._renderingGroups) {
 			rg.prepare();
 		}

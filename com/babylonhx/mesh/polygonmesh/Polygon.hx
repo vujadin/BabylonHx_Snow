@@ -8,7 +8,7 @@ import org.poly2tri.Point;
  * ...
  * @author Krtolica Vujadin
  */
-class Polygon {
+@:expose('BABYLON.IndexedPoint') class Polygon {
 
 	static public inline function Rectangle(xmin:Float, ymin:Float, xmax:Float, ymax:Float):Array<Vector2> {
 		return [

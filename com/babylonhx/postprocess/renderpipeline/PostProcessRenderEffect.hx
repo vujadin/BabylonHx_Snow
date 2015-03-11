@@ -38,9 +38,9 @@ import com.babylonhx.tools.Tools;
 		this._getPostProcess = getPostProcess;
 		
 		this._cameras = new Map<String, Camera>();
+		this._indicesForCamera = new Map<String, Array<Int>>();
 		
 		this._postProcesses = new Map<String, PostProcess>();
-		this._indicesForCamera = new Map<String, Array<Int>>();
 		
 		this._renderPasses = new Map<String, PostProcessRenderPass>();
 		this._renderEffectAsPasses = new Map<String, PostProcessRenderEffect>();
@@ -88,13 +88,13 @@ import com.babylonhx.tools.Tools;
 
 	// private
 	public function _attachCameras(cameras:Dynamic) {
-		var cameraKey:String = "0";
+		var cameraKey:String = "";
 		
 		var _cam = Tools.MakeArray(cameras != null ? cameras : this._cameras);
 		
 		for (c in _cam) {
 			var camera:Camera = c;
-			var cameraName = c.name;
+			var cameraName = camera.name;
 			
 			if (this._singleInstance) {
 				cameraKey = "0";
@@ -107,7 +107,7 @@ import com.babylonhx.tools.Tools;
 			
 			var index = camera.attachPostProcess(this._postProcesses[cameraKey]);
 			
-			if (this._indicesForCamera.get(cameraName) == null) {
+			if (!this._indicesForCamera.exists(cameraName)) {
 				this._indicesForCamera.set(cameraName, []);
 			}
 			
@@ -133,7 +133,7 @@ import com.babylonhx.tools.Tools;
 		
 		for (c in _cam) {
 			var camera:Camera = c;
-			var cameraName = c.name;
+			var cameraName = camera.name;
 			
 			camera.detachPostProcess(this._postProcesses[this._singleInstance ? "0" : cameraName], this._indicesForCamera[cameraName]);
 			
@@ -154,7 +154,7 @@ import com.babylonhx.tools.Tools;
 		
 		for (c in _cam) {
 			var camera:Camera = c;
-			var cameraName = c.name;
+			var cameraName = camera.name;
 			
 			for (j in 0...this._indicesForCamera[cameraName].length) {
 				if (camera._postProcesses[this._indicesForCamera[cameraName][j]] == null) {

@@ -37,15 +37,20 @@ import snow.utils.Float32Array;
 	private var _effectFog:Effect;
 	
 
-	public function new(name:String, imgUrl:String, capacity:Int, cellSize:Float, scene:Scene, ?epsilon:Float) {
+	public function new(name:String, imgUrl:String, capacity:Int, cellSize:Float, scene:Scene, ?epsilon:Float, ?samplingMode:Int = Texture.TRILINEAR_SAMPLINGMODE) {
 		this.name = name;
 		this.cellSize = cellSize;
 		
 		this._capacity = capacity;
-		this._spriteTexture = new Texture(imgUrl, scene, true, false);
+		this._spriteTexture = new Texture(imgUrl, scene, true, false, samplingMode);
 		this._spriteTexture.wrapU = Texture.CLAMP_ADDRESSMODE;
 		this._spriteTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
 		this._epsilon = epsilon == null ? 0.01 : epsilon;
+		
+		// temp fix for correct 'pixelated' appearance
+        if(samplingMode == Texture.NEAREST_SAMPLINGMODE) {
+            this._spriteTexture.anisotropicFilteringLevel = 1;
+        }
 		
 		this._scene = scene;
 		this._scene.spriteManagers.push(this);
