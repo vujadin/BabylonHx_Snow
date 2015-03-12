@@ -99,7 +99,7 @@ import snow.utils.Float32Array;
 	private var _started:Bool = false;
 	private var _stopped:Bool = false;
 	private var _actualFrame:Int = 0;
-	private var _scaledUpdateSpeed:Float;
+	public var _scaledUpdateSpeed:Float;
 	
 
 	public function new(name:String, capacity:Int, scene:Scene, ?customEffect:Effect) {

@@ -37,9 +37,10 @@ import samples.Fresnel;
  * ...
  * @author Krtolica Vujadin
  */
-class SceneSerializer {
+@:expose('BABYLON.SceneSerializer') class SceneSerializer {
 	
 	static var serializedGeometries:Map<String, Geometry> = new Map<String, Geometry>();
+	
 		
 	public static function serialize(scene:Scene):Dynamic {
 		var serializationObject:Dynamic = { };

@@ -26,10 +26,12 @@ import snow.utils.Float32Array;
 	private var _totalVertices:Int = 0;
 	private var _indices:Array<Int> = [];
 	private var _vertexBuffers:Map<String, VertexBuffer>;
+	private var _isDisposed:Bool = false;
 	public var _delayInfo:Array<String>; //ANY
 	private var _indexBuffer:BabylonBuffer;
 	public var _boundingInfo:BoundingInfo;
 	public var _delayLoadingFunction:Dynamic->Geometry->Void;
+	
 
 	public function new(id:String, scene:Scene, ?vertexData:VertexData, updatable:Bool = false, ?mesh:Mesh) {
 		this.id = id;
@@ -356,6 +358,10 @@ import snow.utils.Float32Array;
 			}
 		}, function() { }, scene.database);*/
 	}
+	
+	public function isDisposed():Bool {
+		return this._isDisposed;
+	}
 
 	public function dispose() {
 		var meshes = this._meshes;
@@ -391,6 +397,8 @@ import snow.utils.Float32Array;
 		if (index > -1) {
 			geometries.splice(index, 1);
 		}
+		
+		this._isDisposed = true;
 	}
 
 	public function copy(id:String):Geometry {

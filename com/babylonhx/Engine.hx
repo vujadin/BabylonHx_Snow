@@ -143,19 +143,12 @@ import js.Browser;
 	public function new(canvas:App, antialias:Bool = false, ?options:Dynamic) {
 		Engine.app = canvas;
 		this._renderingCanvas = canvas;
-		#if (nme || openfl)
-		this._canvasClientRect = canvas.window.width;// this._renderingCanvas.getBoundingClientRect();
-		#end
+		this._canvasClientRect.width = canvas.app.window.width;
+		this._canvasClientRect.height = canvas.app.window.height;
 		
 		options = options != null ? options : {};
 		options.antialias = antialias;
-		
-		// GL
-		// TODO
-		/*if (!OpenGLView.isSupported) {
-			throw("GL not supported");
-		}*/
-		
+				
 		this._onBlur = function() {
 			this._windowIsBackground = true;
 		};
@@ -163,11 +156,7 @@ import js.Browser;
 		this._onFocus = function() {
 			this._windowIsBackground = false;
 		};
-		
-		// Textures
-		//this._workingContext = new OpenGLView();
-		//canvas.addChild(this._workingContext);
-		
+				
 		// Viewport
 		// TODO
 		this._hardwareScalingLevel = 1;// Std.int(1.0 / (Capabilities.pixelAspectRatio));		
@@ -304,7 +293,6 @@ import js.Browser;
 	}
 
 	public function getRenderWidth():Int {
-		// TODO: Snow and Kha ...
 		/*if (this._currentRenderTarget != null) {
 			return Std.int(this._currentRenderTarget._width);
 		}*/
@@ -313,7 +301,6 @@ import js.Browser;
 	}
 
 	public function getRenderHeight():Int {
-		// TODO: Snow and Kha ...
 		/*if (this._currentRenderTarget != null) {
 			return Std.int(this._currentRenderTarget._height);
 		}*/
@@ -321,17 +308,9 @@ import js.Browser;
 		return Std.int(app.app.window.height);
 	}
 
-	public function getRenderingCanvas(): #if (nme || openfl) Sprite #else Dynamic #end {
+	public function getRenderingCanvas():Dynamic {
 		return this._renderingCanvas;
 	}
-
-	// TODO
-	#if (nme || openfl)
-	public function getRenderingCanvasClientRect():Rectangle {
-		return Lib.current.stage.getBounds(Lib.current.stage);
-		//return this._renderingCanvas.getBounds(this._renderingCanvas);
-	}
-	#end
 
 	public function setHardwareScalingLevel(level:Int) {
 		this._hardwareScalingLevel = level;
@@ -1026,16 +1005,6 @@ import js.Browser;
 		GL.bindTexture(GL.TEXTURE_2D, null);
 	}
 	
-	#if (nme || openfl)
-	function getScaled(source:BitmapData, newWidth:Int, newHeight:Int):BitmapData {
-		var m:flash.geom.Matrix = new flash.geom.Matrix();
-		m.scale(newWidth / source.width, newHeight / source.height);
-		var bmp:BitmapData = new BitmapData(newWidth, newHeight, true);
-		bmp.draw(source, m);
-		return bmp;
-	}
-	#end
-
 	public function createTexture(url:String, noMipmap:Bool, invertY:Bool, scene:Scene, samplingMode:Int = Texture.TRILINEAR_SAMPLINGMODE, onLoad:Void->Void = null, onError:Void->Void = null, buffer:Dynamic = null):BabylonTexture {
 		
 		var texture = new BabylonTexture(url, GL.createTexture());
@@ -1242,30 +1211,6 @@ import js.Browser;
 		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, filters.min);
 		GL.bindTexture(GL.TEXTURE_2D, null);
 	}
-
-	#if (nme || openfl)
-	public function updateDynamicTexture(texture:BabylonTexture, canvas:BitmapData, invertY:Int) {
-        GL.bindTexture(GL.TEXTURE_2D, texture.data);
-		#if html5
-        GL.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, invertY);
-		#end
-		
-		#if html5
-		//var pixelData = canvas.getPixels(canvas.rect).byteView;
-		var pixelData = new UInt8Array(@:privateAccess (this._workingCanvas.__image.data));
-		#else
-		var pixelData = new UInt8Array(BitmapData.getRGBAPixels(canvas));
-		#end
-		
-		GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, canvas.width, canvas.height, 0, GL.RGBA, GL.UNSIGNED_BYTE, cast pixelData);
-        if (texture.generateMipMaps) {
-            GL.generateMipmap(GL.TEXTURE_2D);
-        }
-        GL.bindTexture(GL.TEXTURE_2D, null);
-        this._activeTexturesCache = [];
-        texture.isReady = true;
-    }
-	#end
 
 	public function updateVideoTexture(texture:BabylonTexture, video:Dynamic, invertY:Bool) {
 		/*GL.bindTexture(GL.TEXTURE_2D, texture);

@@ -1327,4 +1327,52 @@ import snow.utils.ByteArray;
 		return Vector3.Center(minMaxVector.minimum, minMaxVector.maximum);
 	}
 	
+	public static function MergeMeshes(meshes:Array<Mesh>, disposeSource:Bool = true, allow32BitsIndices:Bool = false):Mesh {
+		var source:Mesh = meshes[0];
+		var material:Material = source.material;
+		var scene:Scene = source.getScene();
+		
+		if (!allow32BitsIndices) {
+			var totalVertices = 0;
+			
+			// Counting vertices
+			for (index in 0...meshes.length) {
+				totalVertices += meshes[index].getTotalVertices();
+				
+				if (totalVertices > 65536) {
+					trace("Cannot merge meshes because resulting mesh will have more than 65536 vertices. Please use allow32BitsIndices = true to use 32 bits indices");
+					return null;
+				}
+			}
+		}
+		
+		// Merge
+		var vertexData:VertexData = VertexData.ExtractFromMesh(source);
+		vertexData.transform(source.getWorldMatrix());
+		
+		for (index in 1...meshes.length) {
+			var otherVertexData = VertexData.ExtractFromMesh(meshes[index]);
+			otherVertexData.transform(meshes[index].getWorldMatrix());
+			
+			vertexData.merge(otherVertexData);
+		}
+		
+		var newMesh:Mesh = new Mesh(source.name + "_merged", scene);
+		
+		vertexData.applyToMesh(newMesh);
+		
+		// Setting properties
+		newMesh.material = material;
+		newMesh.checkCollisions = source.checkCollisions;
+		
+		// Cleaning
+		if (disposeSource) {
+			for (index in 0...meshes.length) {
+				meshes[index].dispose();
+			}
+		}
+		
+		return newMesh;
+	}
+	
 }

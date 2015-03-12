@@ -76,7 +76,7 @@ class Bones {
 				}
 				
 				dude.rotation.y = Math.PI;
-				dude.position = new Vector3(0, 0, -80);
+				dude.position = new Vector3(0, 0, -80);				
 					
 				scene.beginAnimation(skeletons2[0], 0, 100, true, 1.0);
 				
