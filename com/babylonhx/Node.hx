@@ -25,7 +25,7 @@ import com.babylonhx.animations.Animation;
 	public var _currentRenderId:Int = -1;
 	private var _parentRenderId:Int = -1;
 	
-	public var __smartArrayFlags:Array<Int>;
+	public var __smartArrayFlags:Array<Int> = [];
 
 	public var _waitingParentId:Null<String>;
 

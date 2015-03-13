@@ -27,7 +27,7 @@ import snow.utils.Float32Array;
 	private var _indices:Array<Int> = [];
 	private var _vertexBuffers:Map<String, VertexBuffer>;
 	private var _isDisposed:Bool = false;
-	public var _delayInfo:Array<String>; //ANY
+	public var _delayInfo:Array<String> = []; //ANY
 	private var _indexBuffer:BabylonBuffer;
 	public var _boundingInfo:BoundingInfo;
 	public var _delayLoadingFunction:Dynamic->Geometry->Void;

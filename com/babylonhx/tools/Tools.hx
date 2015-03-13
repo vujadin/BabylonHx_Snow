@@ -2,12 +2,15 @@ package com.babylonhx.tools;
 
 #if js
 import js.html.Element;
+import js.html.XMLHttpRequest;
 #end
 
 import com.babylonhx.math.Vector3;
 import com.babylonhx.mesh.Mesh;
 import com.babylonhx.mesh.SubMesh;
 import com.babylonhx.mesh.AbstractMesh;
+import haxe.format.JsonParser;
+import haxe.Json;
 import haxe.Timer;
 
 import snow.assets.AssetImage;
@@ -119,13 +122,14 @@ import snow.assets.AssetImage;
 	}
 	
 	public static function LoadFile(url:String, ?callbackFn:Dynamic->Void, type:String = "") {
-		if(type == "") {
+		_loadFile(url, callbackFn, type);
+		/*if(type == "") {
 			if (SnowApp._snow.assets.exists(url)) {
 				if (StringTools.endsWith(url, "bbin")) {
-					var file = SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });					
+					SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null } );	
 				} 
 				else {
-					var file = SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null });
+					SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
 				}
 			} else {
 				trace("File '" + url + "' doesn't exist!");
@@ -134,19 +138,66 @@ import snow.assets.AssetImage;
 			if(SnowApp._snow.assets.exists(url)) {
 				switch(type) {
 					case "text":
-						var file = SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null });
+						SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
 						
 					case "bin":
-						var file = SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });
+						SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });
 						
 					case "img":
-						var img = SnowApp._snow.assets.image(url, { onload: callbackFn != null ? callbackFn : null });
+						SnowApp._snow.assets.image(url, { onload: callbackFn != null ? callbackFn : null });
+				}
+			} else {
+				trace("File '" + url + "' doesn't exist!");
+			}
+		}*/
+    }
+	
+	
+	private static function _loadFile(path:String, ?callback:Dynamic->Void, type:String = "") {
+		#if js
+		var httpRequest = new XMLHttpRequest();
+		httpRequest.onreadystatechange = function(_) {
+			if (httpRequest.readyState == 4) {
+				if (httpRequest.status == 200) {
+					if (callback != null) {
+						callback(httpRequest.responseText);
+					}
+				}
+			}
+		};
+		httpRequest.open('GET', path);
+		httpRequest.send();
+		#else
+		if(type == "") {
+			if (SnowApp._snow.assets.exists(url)) {
+				if (StringTools.endsWith(url, "bbin")) {
+					SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null } );	
+				} 
+				else {
+					SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
+				}
+			} else {
+				trace("File '" + url + "' doesn't exist!");
+			}
+		} else {
+			if(SnowApp._snow.assets.exists(url)) {
+				switch(type) {
+					case "text":
+						SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
+						
+					case "bin":
+						SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });
+						
+					case "img":
+						SnowApp._snow.assets.image(url, { onload: callbackFn != null ? callbackFn : null });
 				}
 			} else {
 				trace("File '" + url + "' doesn't exist!");
 			}
 		}
-    }	
+		#end
+	}
+	
 
 	public static function LoadImage(url:String, onload:AssetImage-> Void, ?onerror:Void->Void, ?db:Dynamic) { 
 		if (SnowApp._snow.assets.exists(url)) {
@@ -423,6 +474,28 @@ import snow.assets.AssetImage;
 		#else
 		return Std.int ((Timer.stamp() - __startTime) * 1000);
 		#end		
+	}
+	
+	public static inline function uuid():String {
+		var specialChars = ['8', '9', 'A', 'B'];
+		
+		var createRandomIdentifier = function(length:Int, radix:Int = 61):String {
+			var characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+			var id:Array<String>   = new Array<String>();
+			radix                  = (radix > 61) ? 61 : radix;
+			
+			while (length-- > 0) {
+				id.push(characters[randomInt(0, radix)]);
+			}
+			
+			return id.join('');
+		}
+		
+		return createRandomIdentifier(8, 15) + '-' + createRandomIdentifier(4, 15) + '-4' + createRandomIdentifier(3, 15) + '-' + randomInt(0, 3) + createRandomIdentifier(3, 15) + '-' + createRandomIdentifier(12, 15);
+	}
+	
+	public static inline function randomInt(from:Int, to:Int):Int {
+		return from + Math.floor(((to - from + 1) * Math.random()));
 	}
 	
 }

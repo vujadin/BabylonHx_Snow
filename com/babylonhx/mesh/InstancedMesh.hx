@@ -109,7 +109,9 @@ import com.babylonhx.tools.Tools;
 	}
 	
 	override public function _activate(renderId:Int) {
-		this.sourceMesh._registerInstanceForRenderId(this, renderId);
+		if (this._currentLOD != null) {
+			this.sourceMesh._registerInstanceForRenderId(this, renderId);
+		}
 	}
 	
 	override public function getLOD(camera:Camera, ?boundingSphere:BoundingSphere):AbstractMesh {

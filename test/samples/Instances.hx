@@ -28,6 +28,7 @@ class Instances {
 	public function new(scene:Scene) {
 		var light = new DirectionalLight("dir01", new Vector3(0, -1, -0.3), scene);
 		var camera = new FreeCamera("Camera", new Vector3(0, 10, -20), scene);
+		camera.attachControl(this);
 		camera.speed = 0.4;
 		
 		light.position = new Vector3(20, 60, 30);

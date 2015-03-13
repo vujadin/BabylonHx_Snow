@@ -78,10 +78,11 @@ import snow.utils.ByteArray;
 			}
 			
 			// Deep copy
-			Tools.DeepCopy(source, this, ["name", "material", "skeleton"], []);
+			//Tools.DeepCopy(source, this, ["name", "material", "skeleton"], []);
+			_deepCopy(source, this);
 			
 			// Material
-			this.material = source.material;
+			//this.material = source.material;
 			
 			if (!doNotCloneChildren) {
 				// Children
@@ -110,6 +111,99 @@ import snow.utils.ByteArray;
 		if (parent != null) {
 			this.parent = parent;
 		}
+	}
+	
+	static private function _deepCopy(source:Mesh, dest:Mesh) {
+		dest.__smartArrayFlags = source.__smartArrayFlags.copy();
+		dest._LODLevels = source._LODLevels.copy();
+		dest._absolutePosition = source._absolutePosition.clone();
+		dest._batchCache = source._batchCache;
+		dest._boundingInfo = source._boundingInfo;
+		dest._cache = source._cache;
+		dest._checkCollisions = source._checkCollisions;
+		dest._childrenFlag = source._childrenFlag;
+		dest._collider = source._collider;
+		dest._collisionsScalingMatrix = source._collisionsScalingMatrix.clone();
+		dest._collisionsTransformMatrix = source._collisionsTransformMatrix.clone();
+		dest._diffPositionForCollisions = source._diffPositionForCollisions.clone();
+		dest._geometry = source._geometry;
+		dest._instancesBufferSize = source._instancesBufferSize;
+		dest._intersectionsInProgress = source._intersectionsInProgress.copy();
+		dest._isBlocked	= source._isBlocked;
+		dest._isDirty = source._isDirty;
+		dest._isDisposed = source._isDisposed;
+		dest._isEnabled = source._isEnabled;
+		dest._isPickable = source._isPickable;
+		dest._isReady = source._isReady;
+		dest._localBillboard = source._localBillboard.clone();
+		dest._localPivotScaling = source._localPivotScaling.clone();
+		dest._localRotation = source._localRotation.clone();
+		dest._localScaling = source._localScaling.clone();
+		dest._localTranslation = source._localTranslation.clone();
+		dest._localWorld = source._localWorld;
+		dest._masterMesh = source._masterMesh;		// ??
+		dest._material = source._material;
+		dest._newPositionForCollisions = source._newPositionForCollisions.clone();
+		dest._oldPositionForCollisions = source._oldPositionForCollisions.clone();
+		dest._onAfterRenderCallbacks = source._onAfterRenderCallbacks;
+		dest._onAfterWorldMatrixUpdate = source._onAfterWorldMatrixUpdate;
+		dest._onBeforeRenderCallbacks = source._onBeforeRenderCallbacks;
+		dest._parentRenderId = source._parentRenderId;
+		dest._physicImpostor = source._physicImpostor;
+		dest._physicRestitution = source._physicRestitution;
+		dest._physicsFriction = source._physicsFriction;
+		dest._physicsMass = source._physicsMass;
+		dest._pivotMatrix = source._pivotMatrix.clone();
+		if(source._positions != null) dest._positions = source._positions.copy();
+		dest._preActivateId = source._preActivateId;
+		dest._receiveShadows = source._receiveShadows;
+		dest._renderId = source._renderId;
+		dest._renderIdForInstances = source._renderIdForInstances.copy();
+		dest._rotateYByPI = source._rotateYByPI.clone();
+		dest._savedMaterial = source._savedMaterial;
+		dest._scene = source._scene;
+		dest._shouldGenerateFlatShading = source._shouldGenerateFlatShading;
+		//dest._skeleton = source._skeleton.clone(Tools.uuid(), Tools.uuid());
+		dest._submeshesOctree = source._submeshesOctree;
+		dest._visibility = source._visibility;
+		dest._visibleInstances = source._visibleInstances;
+		dest._waitingActions = source._waitingActions;
+		dest._waitingParentId = source._waitingParentId;
+		if(source._worldMatricesInstancesArray != null) dest._worldMatricesInstancesArray = source._worldMatricesInstancesArray.copy();
+		dest._worldMatricesInstancesBuffer = source._worldMatricesInstancesBuffer;
+		dest._worldMatrix = source._worldMatrix.clone();
+		
+				
+		dest.definedFacingForward = source.definedFacingForward;
+		dest.position = source.position.clone();
+		dest.rotation = source.rotation.clone();
+		if(source.rotationQuaternion != null) dest.rotationQuaternion = source.rotationQuaternion.clone();
+		dest.scaling = source.scaling.clone();
+		dest.billboardMode = source.billboardMode;
+		dest.alphaIndex = source.alphaIndex;
+		dest.infiniteDistance = source.infiniteDistance;
+		dest.isVisible = source.isVisible;
+		dest.showBoundingBox = source.showBoundingBox;
+		dest.showSubMeshesBoundingBox = source.showSubMeshesBoundingBox;
+		dest.onDispose = source.onDispose;
+		dest.isBlocker = source.isBlocker;
+		dest.renderingGroupId = source.renderingGroupId;
+		dest.actionManager = source.actionManager;
+		dest.renderOutline = source.renderOutline;
+		dest.outlineColor = source.outlineColor.clone();
+		dest.outlineWidth = source.outlineWidth;
+		dest.renderOverlay = source.renderOverlay;
+		dest.overlayColor = source.overlayColor.clone();
+		dest.overlayAlpha = source.overlayAlpha;
+		dest.hasVertexAlpha = source.hasVertexAlpha;
+		dest.useVertexColors = source.useVertexColors;
+		dest.applyFog = source.applyFog;
+		dest.useOctreeForRenderingSelection = source.useOctreeForRenderingSelection;
+		dest.useOctreeForPicking = source.useOctreeForPicking;
+		dest.useOctreeForCollisions = source.useOctreeForCollisions;
+		dest.layerMask = source.layerMask;
+		dest.ellipsoid = source.ellipsoid.clone();
+		dest.ellipsoidOffset = source.ellipsoidOffset.clone();
 	}
 
 	// Methods
@@ -1231,7 +1325,7 @@ import snow.utils.ByteArray;
 	public static function CreateGround(name:String, width:Float, height:Float, subdivisions:Int, scene:Scene, updatable:Bool = false):Mesh {
 		var ground = new GroundMesh(name, scene);
 		ground._setReady(false);
-		ground._subdivisions = subdivisions;
+		ground.subdivisions = subdivisions;
 		
 		var vertexData = VertexData.CreateGround(width, height, subdivisions);
 		vertexData.applyToMesh(ground, updatable);
@@ -1248,7 +1342,7 @@ import snow.utils.ByteArray;
 	
 	public static function CreateGroundFromHeightMap(name:String, url:String, width:Float, height:Float, subdivisions:Int, minHeight:Float, maxHeight:Float, scene:Scene, updatable:Bool = false, ?onReady:GroundMesh->Void):GroundMesh {
 		var ground = new GroundMesh(name, scene);
-		ground._subdivisions = subdivisions;
+		ground.subdivisions = subdivisions;
 		ground._setReady(false);
 		
 		var onload = function(img:AssetImage) {

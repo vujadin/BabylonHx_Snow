@@ -78,12 +78,12 @@ class Main extends snow.App {
 		//new samples.PolygonMesh(scene);
 		//new samples.CustomRenderTarget(scene);
 		//new samples.Lines(scene);
-		new samples.Bones(scene);
+		//new samples.Bones(scene);
 		//new samples.PostprocessRefraction(scene);
 		//new samples.Shadows(scene);
 		//new samples.HeightMap(scene);
 		//new samples.LoadObjFile(scene);
-		//new samples.LOD(scene);
+		new samples.LOD(scene);
 		//new samples.Instances(scene);
 		//new samples.Fresnel(scene);
 		//new samples.PostprocessConvolution(scene);
@@ -97,7 +97,8 @@ class Main extends snow.App {
 		//new samples.Actions(scene);
 		//new samples.Picking(scene);
 		//new samples.Particles3(scene);
-						
+		//new samples.Octree(scene);
+		
 		app.window.onrender = render;
 	}
 		

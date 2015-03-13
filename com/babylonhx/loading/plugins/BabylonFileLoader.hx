@@ -87,8 +87,19 @@ import snow.assets.AssetText;
 	private static var _plugin:ISceneLoaderPlugin = {
 		extensions: ".babylon",
         importMesh: function(meshesNames:Dynamic, scene:Scene, data:Dynamic, rootUrl:String, meshes:Array<AbstractMesh>, particleSystems:Array<ParticleSystem>, skeletons:Array<Skeleton>):Bool {
-			
+						
 			var parsedData:Dynamic = null;
+			
+			#if js
+			if (Std.is(data, String)) {
+				parsedData = Json.parse(data);
+			} else if(Std.is(data, snow.utils.ByteArray)) {
+				parsedData = MsgPack.decode(data);
+			} else {
+				trace("Unknown data type!");
+				return false;
+			}
+			#else
 			if(Std.is(data, AssetText)) {
 				parsedData = Json.parse(data.text);
 			} else if(Std.is(data, AssetBytes)) {
@@ -97,7 +108,8 @@ import snow.assets.AssetText;
 				trace("Unknown data type!");
 				return false;
 			}
-						
+			#end
+									
             var loadedSkeletonsIds:Array<Int> = [];
             var loadedMaterialsIds:Array<Int> = [];
             var hierarchyIds:Array<Int> = [];
@@ -489,7 +501,7 @@ import snow.assets.AssetText;
 
     public static function parseSkeleton(parsedSkeleton:Dynamic, scene:Scene):Skeleton {
         var skeleton = new Skeleton(parsedSkeleton.name, parsedSkeleton.id, scene);
-		
+		try {
         for (index in 0...parsedSkeleton.bones.length) {
             var parsedBone = parsedSkeleton.bones[index];
 			
@@ -504,6 +516,9 @@ import snow.assets.AssetText;
                 bone.animations.push(parseAnimation(parsedBone.animation));
             }
         }
+		} catch (err:Dynamic) {
+			trace(err);
+		}
 		
         return skeleton;
     }

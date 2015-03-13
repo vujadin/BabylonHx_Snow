@@ -178,7 +178,7 @@ import com.babylonhx.mesh.AbstractMesh;
 		
 		for (key in startKey...this._keys.length) {
 			// for each frame, we need the key just before the frame superior
-			if (this._keys[key + 1].frame >= currentFrame) {
+			if (this._keys[key + 1] != null && this._keys[key + 1].frame >= currentFrame) {
 				
 				var startValue:Dynamic = this._keys[key].value;
 				var endValue:Dynamic = this._keys[key + 1].value;

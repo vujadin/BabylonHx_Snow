@@ -48,24 +48,24 @@ class Bones {
 		SceneLoader.ImportMesh("Rabbit", "assets/models/Rabbit/", "Rabbit.babylon", scene, function(newMeshes, particleSystems, skeletons) {
 			var rabbit = newMeshes[1];
 			
-			rabbit.scaling = new Vector3(0.4, 0.4, 0.4);
-			shadowGenerator.getShadowMap().renderList.push(rabbit);
+			rabbit.scaling = new Vector3(0.4, 0.4, 0.4);			
 			
-			/*var rabbit2 = rabbit.clone("rabbit2");
+			var rabbit2 = rabbit.clone("rabbit2");
 			var rabbit3 = rabbit.clone("rabbit2");
-			
-			shadowGenerator.getShadowMap().renderList.push(rabbit2);
-			shadowGenerator.getShadowMap().renderList.push(rabbit3);
 			
 			rabbit2.position = new Vector3(-50, 0, -20);
 			rabbit2.skeleton = rabbit.skeleton.clone("clonedSkeleton");
 			
 			rabbit3.position = new Vector3(50, 0, -20);
-			rabbit3.skeleton = rabbit.skeleton.clone("clonedSkeleton2");*/
+			rabbit3.skeleton = rabbit.skeleton.clone("clonedSkeleton2");
 			
 			scene.beginAnimation(skeletons[0], 0, 100, true, 0.8);
-			/*scene.beginAnimation(rabbit2.skeleton, 73, 100, true, 0.8);
-			scene.beginAnimation(rabbit3.skeleton, 0, 72, true, 0.8);*/
+			scene.beginAnimation(rabbit2.skeleton, 73, 100, true, 0.8);
+			scene.beginAnimation(rabbit3.skeleton, 0, 72, true, 0.8);
+			
+			shadowGenerator.getShadowMap().renderList.push(rabbit);
+			shadowGenerator.getShadowMap().renderList.push(rabbit2);
+			shadowGenerator.getShadowMap().renderList.push(rabbit3);
 			
 			// Dude
 			SceneLoader.ImportMesh("him", "assets/models/Dude/", "Dude.babylon", scene, function (newMeshes2, particleSystems2, skeletons2) {
@@ -76,7 +76,7 @@ class Bones {
 				}
 				
 				dude.rotation.y = Math.PI;
-				dude.position = new Vector3(0, 0, -80);				
+				dude.position = new Vector3(0, 0, -80);
 					
 				scene.beginAnimation(skeletons2[0], 0, 100, true, 1.0);
 				

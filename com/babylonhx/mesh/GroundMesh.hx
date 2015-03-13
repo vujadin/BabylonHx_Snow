@@ -14,14 +14,23 @@ import com.babylonhx.math.Ray;
 	public var generateOctree = false;
 
 	private var _worldInverse = new Matrix();
-	public var _subdivisions:Int;
+	private var _subdivisions:Int;
+	
+	public var subdivisions(get, set):Int;
+	private function get_subdivisions():Int {
+		return _subdivisions;
+	}
+	private function set_subdivisions(value:Int):Int {
+		_subdivisions = value;
+		return _subdivisions;
+	}
 
 	
 	public function new(name:String, scene:Scene) {
 		super(name, scene);
 	}
 
-	public function _optimize(chunksCount:Float):Void {
+	public function optimize(chunksCount:Float):Void {
 		this.subdivide(this._subdivisions);
 		this.createOrUpdateSubmeshesOctree(32);
 	}

@@ -87,7 +87,7 @@ import snow.utils.Float32Array;
 		return this._animatables;
 	}
 
-	public function clone(name:String, id:String):Skeleton {
+	public function clone(name:String, ?id:String):Skeleton {
 		var result = new Skeleton(name, id != null ? id : name, this._scene);
 		
 		for (index in 0...this.bones.length) {
@@ -100,8 +100,9 @@ import snow.utils.Float32Array;
 			}
 			
 			var bone = new Bone(source.name, result, parentBone, source.getBaseMatrix());
-			// TODO
-			//Tools.DeepCopy(source.animations, bone.animations);
+			for (anim in source.animations) {
+				bone.animations.push(anim.clone());
+			}
 		}
 		
 		return result;
