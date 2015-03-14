@@ -529,7 +529,7 @@ import com.babylonhx.tools.Tools;
 				this._effect.setMatrix("specularMatrix", this.specularTexture.getTextureMatrix());
 			}
 			
-			if (this.bumpTexture != null && scene.getEngine().getCaps().standardDerivatives && StandardMaterial.BumpTextureEnabled) {
+			if (this.bumpTexture != null && scene.getEngine().getCaps().standardDerivatives != null && StandardMaterial.BumpTextureEnabled) {
 				this._effect.setTexture("bumpSampler", this.bumpTexture);
 				this._effect.setFloat2("vBumpInfos", this.bumpTexture.coordinatesIndex, 1.0 / this.bumpTexture.level);
 				this._effect.setMatrix("bumpMatrix", this.bumpTexture.getTextureMatrix());

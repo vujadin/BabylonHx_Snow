@@ -121,6 +121,7 @@ package com.babylonhx.actions;
 	}
 
 	public function _getEffectiveTarget(target:Dynamic, propertyPath:String):Dynamic {
+		trace(propertyPath);
 		var properties = propertyPath.split(".");
 		
 		for (index in 0...properties.length - 1) {

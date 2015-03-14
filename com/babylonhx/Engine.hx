@@ -187,6 +187,14 @@ import js.Browser;
 		}*/
 		
 		// Extensions
+		this._caps.standardDerivatives = (GL.getExtension('OES_standard_derivatives') != null);
+		this._caps.s3tc = GL.getExtension('WEBGL_compressed_texture_s3tc');
+		this._caps.textureFloat = (GL.getExtension('OES_texture_float') != null);
+		this._caps.textureAnisotropicFilterExtension = GL.getExtension('EXT_texture_filter_anisotropic') || GL.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || GL.getExtension('MOZ_EXT_texture_filter_anisotropic');
+		this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension != null ? GL.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
+		this._caps.instancedArrays = GL.getExtension('ANGLE_instanced_arrays');
+		this._caps.uintIndices = GL.getExtension('OES_element_index_uint') != null;
+		
 		#if !js
 		if (this._caps.s3tc == null) {
 			this._caps.s3tc = GL.getExtension('GL_EXT_texture_compression_s3tc');
@@ -219,14 +227,6 @@ import js.Browser;
 		if (this._caps.textureFloat == false) {
 			this._caps.textureFloat = GL.getExtension('GL_ARB_texture_float');
 		}
-		#else		
-		this._caps.standardDerivatives = (GL.getExtension('OES_standard_derivatives') != null);
-		this._caps.s3tc = GL.getExtension('WEBGL_compressed_texture_s3tc');
-		this._caps.textureFloat = (GL.getExtension('OES_texture_float') != null);
-		this._caps.textureAnisotropicFilterExtension = GL.getExtension('EXT_texture_filter_anisotropic') || GL.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || GL.getExtension('MOZ_EXT_texture_filter_anisotropic');
-		this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension != null ? GL.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
-		this._caps.instancedArrays = GL.getExtension('ANGLE_instanced_arrays');
-		this._caps.uintIndices = GL.getExtension('OES_element_index_uint') != null;
 		#end
 		
 		/*for (ext in GL.getSupportedExtensions()) {

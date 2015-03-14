@@ -200,16 +200,25 @@ import snow.assets.AssetText;
         },
 		load: function(scene:Scene, data:Dynamic, rootUrl:String):Bool {
 			var parsedData:Dynamic = null;
-			if (Std.is(data, AssetText)) {
-				parsedData = Json.parse(data.text);
-			} 
-			else if (Std.is(data, AssetBytes)) {
-				parsedData = MsgPack.decode(data.bytes);
-			} 
-			else {
+			#if js
+			if (Std.is(data, String)) {
+				parsedData = Json.parse(data);
+			} else if(Std.is(data, snow.utils.ByteArray)) {
+				parsedData = MsgPack.decode(data);
+			} else {
 				trace("Unknown data type!");
 				return false;
 			}
+			#else
+			if(Std.is(data, AssetText)) {
+				parsedData = Json.parse(data.text);
+			} else if(Std.is(data, AssetBytes)) {
+				parsedData = MsgPack.decode(data.bytes);
+			} else {
+				trace("Unknown data type!");
+				return false;
+			}
+			#end
 			data = null;
 						
             // Scene
@@ -1276,10 +1285,9 @@ import snow.assets.AssetText;
 					
 				case "PlaySoundAction":
 					//newInstance = new PlaySoundAction(params[0], params[1], params[2]);
-					newInstance = Type.createInstance(PlaySoundAction, params);
+					//newInstance = Type.createInstance(PlaySoundAction, params);
 					
 			}
-			trace(newInstance);
 			
             return newInstance;
         };

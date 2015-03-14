@@ -153,14 +153,14 @@ import snow.assets.AssetImage;
     }
 	
 	
-	private static function _loadFile(path:String, ?callback:Dynamic->Void, type:String = "") {
+	private static function _loadFile(path:String, ?callbackFn:Dynamic->Void, type:String = "") {
 		#if js
 		var httpRequest = new XMLHttpRequest();
 		httpRequest.onreadystatechange = function(_) {
 			if (httpRequest.readyState == 4) {
 				if (httpRequest.status == 200) {
-					if (callback != null) {
-						callback(httpRequest.responseText);
+					if (callbackFn != null) {
+						callbackFn(httpRequest.responseText);
 					}
 				}
 			}
@@ -169,30 +169,30 @@ import snow.assets.AssetImage;
 		httpRequest.send();
 		#else
 		if(type == "") {
-			if (SnowApp._snow.assets.exists(url)) {
-				if (StringTools.endsWith(url, "bbin")) {
-					SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null } );	
+			if (SnowApp._snow.assets.exists(path)) {
+				if (StringTools.endsWith(path, "bbin")) {
+					SnowApp._snow.assets.bytes(path, { onload: callbackFn != null ? callbackFn : null } );	
 				} 
 				else {
-					SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
+					SnowApp._snow.assets.text(path, { onload: callbackFn != null ? callbackFn : null } );
 				}
 			} else {
-				trace("File '" + url + "' doesn't exist!");
+				trace("File '" + path + "' doesn't exist!");
 			}
 		} else {
-			if(SnowApp._snow.assets.exists(url)) {
+			if(SnowApp._snow.assets.exists(path)) {
 				switch(type) {
 					case "text":
-						SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
+						SnowApp._snow.assets.text(path, { onload: callbackFn != null ? callbackFn : null } );
 						
 					case "bin":
-						SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });
+						SnowApp._snow.assets.bytes(path, { onload: callbackFn != null ? callbackFn : null });
 						
 					case "img":
-						SnowApp._snow.assets.image(url, { onload: callbackFn != null ? callbackFn : null });
+						SnowApp._snow.assets.image(path, { onload: callbackFn != null ? callbackFn : null });
 				}
 			} else {
-				trace("File '" + url + "' doesn't exist!");
+				trace("File '" + path + "' doesn't exist!");
 			}
 		}
 		#end
