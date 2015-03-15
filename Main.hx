@@ -35,29 +35,11 @@ class Main extends snow.App {
 	}
 
 	override function ready() {
-		
-		/*var img = app.assets.image("assets/img/ground/diffuse.png");
-		trace(img.image.id);
-		var nm = new NormalMap("smoothing", 0);
-		var normalMap = nm.create(img.image);
-		//var normalMap = com.babylonhxext.bumper.Filter.sobel(com.babylonhxext.bumper.Filter.grayscale(img.image), 2.5, 7, "sobel");
-		var fo = File.write("assets/img/ground/normal.png");
-		var jpgWriter = new format.jpg.Writer(fo);
-		var bytes:ByteArray = new ByteArray();
-		bytes.setLength(normalMap.data.length);
-		for (i in 0...normalMap.data.length) {
-			bytes.set(i, normalMap.data.getUInt8(i));
-		}
-		try {
-			jpgWriter.write( { width: img.image.width, height: img.image.height, quality: 100, pixels: bytes } );
-		} catch (err:Dynamic) {
-			trace(err);
-		}*/
-		
+				
 		engine = new Engine(this);
 		scene = new Scene(engine);
 		
-		//new samples.BasicScene(scene);
+		new samples.BasicScene(scene);
 		//new samples.BasicElements(scene);
 		//new samples.RotationAndScaling(scene);
 		//new samples.Materials(scene);
@@ -83,7 +65,7 @@ class Main extends snow.App {
 		//new samples.Shadows(scene);
 		//new samples.HeightMap(scene);
 		//new samples.LoadObjFile(scene);
-		new samples.LOD(scene);
+		//new samples.LOD(scene);
 		//new samples.Instances(scene);
 		//new samples.Fresnel(scene);
 		//new samples.PostprocessConvolution(scene);
