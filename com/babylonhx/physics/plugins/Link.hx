@@ -1,16 +1,16 @@
 package com.babylonhx.physics.plugins;
 
-import oimo.physics.constraint.joint.BallAndSocketJoint;
-import oimo.physics.constraint.joint.DistanceJoint;
-import oimo.physics.constraint.joint.HingeJoint;
-import oimo.physics.constraint.joint.Joint;
-import oimo.physics.constraint.joint.JointConfig;
-import oimo.physics.constraint.joint.PrismaticJoint;
-import oimo.physics.constraint.joint.SliderJoint;
-import oimo.physics.constraint.joint.WheelJoint;
-import oimo.physics.dynamics.RigidBody;
-import oimo.physics.dynamics.World;
-import oimo.math.Vec3;
+import oimohx.physics.constraint.joint.BallAndSocketJoint;
+import oimohx.physics.constraint.joint.DistanceJoint;
+import oimohx.physics.constraint.joint.HingeJoint;
+import oimohx.physics.constraint.joint.Joint;
+import oimohx.physics.constraint.joint.JointConfig;
+import oimohx.physics.constraint.joint.PrismaticJoint;
+import oimohx.physics.constraint.joint.SliderJoint;
+import oimohx.physics.constraint.joint.WheelJoint;
+import oimohx.physics.dynamics.RigidBody;
+import oimohx.physics.dynamics.World;
+import oimohx.math.Vec3;
 
 /**
  * ...
@@ -42,7 +42,7 @@ class Link {
 	public var joint:Joint;
 	
 
-	public function new(obj:LinkConfig) {
+	public function new(obj:Dynamic) {
 		if (obj.world == null) {
 			return;
 		}

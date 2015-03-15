@@ -1,15 +1,14 @@
 package com.babylonhx.physics.plugins;
 
-import com.babylonhx.physics.plugins.MatRotation;
-import oimo.math.Mat33;
-import oimo.math.Quat;
-import oimo.math.Vec3;
-import oimo.physics.collision.shape.BoxShape;
-import oimo.physics.collision.shape.Shape;
-import oimo.physics.collision.shape.ShapeConfig;
-import oimo.physics.collision.shape.SphereShape;
-import oimo.physics.dynamics.RigidBody;
-import oimo.physics.dynamics.World;
+import oimohx.math.Mat33;
+import oimohx.math.Quat;
+import oimohx.math.Vec3;
+import oimohx.physics.collision.shape.BoxShape;
+import oimohx.physics.collision.shape.Shape;
+import oimohx.physics.collision.shape.ShapeConfig;
+import oimohx.physics.collision.shape.SphereShape;
+import oimohx.physics.dynamics.RigidBody;
+import oimohx.physics.dynamics.World;
 
 /**
  * ...
@@ -54,13 +53,13 @@ class Body {
 		var rot:Array<Float> = obj.rot != null ? cast obj.rot : [0, 0, 0];
 		rot = rot.map(function(x) { return x * OimoPlugin.TO_RAD; });
 		var r:Array<Float> = [];
-		for (i in 0...Std.int(rot.length/3)){
+		/*for (i in 0...Std.int(rot.length / 3)) {
 			var tmp = MatRotation.EulerToAxis(rot[i+0], rot[i+1], rot[i+2]);
 			r.push(tmp[0]);  
 			r.push(tmp[1]); 
 			r.push(tmp[2]); 
 			r.push(tmp[3]);
-		}
+		}*/
 
 		// My physics setting
 		var sc:ShapeConfig = obj.sc != null ? cast obj.sc : new ShapeConfig();
@@ -85,7 +84,7 @@ class Body {
 		
 		if(obj.massRot != null){
 			obj.massRot = obj.massRot.map(function(x) { return x * OimoPlugin.TO_RAD; });
-			sc.relativeRotation = MatRotation.EulerToMatrix(obj.massRot[0], obj.massRot[1], obj.massRot[2]);
+			//sc.relativeRotation = MatRotation.EulerToMatrix(obj.massRot[0], obj.massRot[1], obj.massRot[2]);
 		}
 		
 		// My rigidbody

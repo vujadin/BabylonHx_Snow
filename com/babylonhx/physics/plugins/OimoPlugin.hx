@@ -1,5 +1,6 @@
 package com.babylonhx.physics.plugins;
 
+import com.babylonhx.culling.BoundingBox;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.math.Matrix;
 import com.babylonhx.math.Quaternion;
@@ -8,33 +9,19 @@ import com.babylonhx.mesh.Mesh;
 import com.babylonhx.physics.IPhysicsEnginePlugin;
 import com.babylonhx.physics.PhysicsEngine;
 import com.babylonhx.physics.PhysicsBodyCreationOptions;
-import oimo.physics.collision.shape.Shape;
-import oimo.physics.dynamics.RigidBody;
-import oimo.physics.dynamics.World;
-import oimo.math.Vec3;
+import oimohx.math.Quat;
+import oimohx.physics.collision.shape.Shape;
+import oimohx.physics.dynamics.RigidBody;
+import oimohx.physics.dynamics.World;
+import oimohx.math.Vec3;
 import com.babylonhx.physics.plugins.Body;
 import com.babylonhx.physics.plugins.Link;
-
 
 /**
  * ...
  * @author Krtolica Vujadin
  */
-
-typedef BodyParams = {
-	type:String,
-	size:Array<Float>,
-	pos:Array<Float>,
-	rot:Array<Float>
-}
-
-typedef PhysicsMesh = {
-	body:RigidBody,
-	mesh:Mesh,
-	delta:Null<Float>
-}
-
-@:expose('BABYLON.OimoPlugin') class OimoPlugin implements IPhysicsEnginePlugin {
+class OimoPlugin implements IPhysicsEnginePlugin {
 	
 	public static inline var TO_RAD:Float = 0.017453292;// Math.PI / 180;
 	public static inline var WORLD_SCALE:Float = 100;
@@ -43,16 +30,12 @@ typedef PhysicsMesh = {
 	private var _world:World;
 	private var _registeredMeshes:Array<Dynamic> = [];
 	
-	
-	public function new() {
-		
-	}
-	
+
 	private function _checkWithEpsilon(value:Float):Float {
 		return value < PhysicsEngine.Epsilon ? PhysicsEngine.Epsilon : value;
 	}
 
-	public function initialize(?iterations:Int) {
+	public function initialize(?iterations:Float) {
 		this._world = new World();
 		this._world.clear();
 	}
@@ -60,43 +43,52 @@ typedef PhysicsMesh = {
 	public function setGravity(gravity:Vector3) {
 		this._world.gravity = new Vec3(gravity.x, gravity.y, gravity.z);
 	}
-	
-	public function registerMesh(mesh:AbstractMesh, impostor:Int, options:PhysicsBodyCreationOptions):Dynamic {
-		var body = null;
+
+	public function registerMesh(mesh:AbstractMesh, impostor:Int, options:PhysicsBodyCreationOptions) {
+		var body:Body = null;
 		this.unregisterMesh(mesh);
 		mesh.computeWorldMatrix(true);
+		
+		var initialRotation:Quaternion = null;
+		if (mesh.rotationQuaternion != null) {
+			initialRotation = mesh.rotationQuaternion.clone();
+			mesh.rotationQuaternion = new Quaternion(0, 0, 0, 1);
+			mesh.computeWorldMatrix(true);
+		}
+		
+		var bbox:BoundingBox = mesh.getBoundingInfo().boundingBox;
+		
+		// The delta between the mesh position and the mesh bounding box center
+		var deltaPosition:Vector3 = mesh.position.subtract(bbox.center);
+		
+		// Transform delta position with the rotation
+		if (initialRotation != null) {
+			var m = new Matrix();
+			initialRotation.toRotationMatrix(m);
+			deltaPosition = Vector3.TransformCoordinates(deltaPosition, m);
+		}
 		
 		// register mesh
 		switch (impostor) {
 			case PhysicsEngine.SphereImpostor:
-				var bbox = mesh.getBoundingInfo().boundingBox;
 				var radiusX = bbox.maximumWorld.x - bbox.minimumWorld.x;
 				var radiusY = bbox.maximumWorld.y - bbox.minimumWorld.y;
 				var radiusZ = bbox.maximumWorld.z - bbox.minimumWorld.z;
 				
 				var size = Math.max(this._checkWithEpsilon(radiusX), this._checkWithEpsilon(radiusY));
 				size = Math.max(size, this._checkWithEpsilon(radiusZ)) / 2;
-					
-				// The delta between the mesh position and the mesh bounding box center
-				var deltaPosition = mesh.position.subtract(bbox.center);
 				
 				body = new Body({
 					type: 'sphere',
 					size: [size],
 					pos: [bbox.center.x, bbox.center.y, bbox.center.z],
-					rot: [mesh.rotation.x / OimoPlugin.TO_RAD, mesh.rotation.y / OimoPlugin.TO_RAD, mesh.rotation.z / OimoPlugin.TO_RAD],
+					rot: [mesh.rotation.x / TO_RAD, mesh.rotation.y / TO_RAD, mesh.rotation.z / TO_RAD],
 					move: options.mass != 0,
 					config: [options.mass, options.friction, options.restitution],
 					world: this._world
 				});
-				this._registeredMeshes.push({
-					mesh: mesh,
-					body: body,
-					delta: deltaPosition
-				});
 				
-			case PhysicsEngine.PlaneImpostor, PhysicsEngine.BoxImpostor:
-				var bbox = mesh.getBoundingInfo().boundingBox;
+			case PhysicsEngine.PlaneImpostor, PhysicsEngine.CylinderImpostor, PhysicsEngine.BoxImpostor:				
 				var min = bbox.minimumWorld;
 				var max = bbox.maximumWorld;
 				var box = max.subtract(min);
@@ -104,30 +96,35 @@ typedef PhysicsMesh = {
 				var sizeY = this._checkWithEpsilon(box.y);
 				var sizeZ = this._checkWithEpsilon(box.z);
 				
-				// The delta between the mesh position and the mesh boudning box center
-				var deltaPosition = mesh.position.subtract(bbox.center);
-				
 				body = new Body({
 					type: 'box',
 					size: [sizeX, sizeY, sizeZ],
 					pos: [bbox.center.x, bbox.center.y, bbox.center.z],
-					rot: [mesh.rotation.x / OimoPlugin.TO_RAD, mesh.rotation.y / OimoPlugin.TO_RAD, mesh.rotation.z / OimoPlugin.TO_RAD],
+					rot: [mesh.rotation.x / TO_RAD, mesh.rotation.y / TO_RAD, mesh.rotation.z / TO_RAD],
 					move: options.mass != 0,
 					config: [options.mass, options.friction, options.restitution],
 					world: this._world
 				});
-				
-				this._registeredMeshes.push({
-					mesh: mesh,
-					body: body,
-					delta: deltaPosition
-				});
-				
 		}
+		
+		//If quaternion was set as the rotation of the object
+		if (initialRotation != null) {
+			//We have to access the rigid body's properties to set the quaternion. 
+			//The setQuaternion function of Oimo only sets the newOrientation that is only set after an impulse is given or a collision.
+			body.body.orientation = new Quat(initialRotation.w, initialRotation.x, initialRotation.y, initialRotation.z);
+			//update the internal rotation matrix
+			body.body.syncShapes();
+		}
+		
+		this._registeredMeshes.push({
+			mesh: mesh,
+			body: body,
+			delta: deltaPosition
+		});
 		
 		return body;
 	}
-	
+
 	public function registerMeshesAsCompound(parts:Array<PhysicsCompoundBodyPart>, options:PhysicsBodyCreationOptions):Dynamic {
 		var types:Array<String> = [];
 		var	sizes:Array<Float> = [];
@@ -140,17 +137,11 @@ typedef PhysicsMesh = {
 			var part = parts[index];
 			var bodyParameters = this._createBodyAsCompound(part, options, initialMesh);
 			types.push(bodyParameters.type);
-			for (size in bodyParameters.size) {
-				sizes.push(size);
-			}
-			for (pos in bodyParameters.pos) {
-				positions.push(pos);
-			}
-			for (rot in bodyParameters.rot) {
-				rotations.push(rot);
-			}
+			sizes.push(bodyParameters.size);
+			positions.push(bodyParameters.pos);
+			rotations.push(bodyParameters.rot);
 		}
-		
+
 		var body = new Body({
 			type: types,
 			size: sizes,
@@ -160,42 +151,43 @@ typedef PhysicsMesh = {
 			config: [options.mass, options.friction, options.restitution],
 			world: this._world
 		});
-		
+
 		this._registeredMeshes.push({
 			mesh: initialMesh,
 			body: body
 		});
-		
+
 		return body;
 	}
-	
-	private function _createBodyAsCompound(part:PhysicsCompoundBodyPart, options:PhysicsBodyCreationOptions, initialMesh:AbstractMesh):BodyParams {
-		var bodyParameters:BodyParams = { 
+
+	private function _createBodyAsCompound(part:PhysicsCompoundBodyPart, options:PhysicsBodyCreationOptions, initialMesh:AbstractMesh):Dynamic {
+		var bodyParameters:Dynamic = { 
 			type: "",
 			size: [],
 			pos: [],
 			rot: []
 		};
 		var mesh = part.mesh;
-		
+		// We need the bounding box/sphere info to compute the physics body
+		mesh.computeWorldMatrix();
+
 		switch (part.impostor) {
 			case PhysicsEngine.SphereImpostor:
 				var bbox = mesh.getBoundingInfo().boundingBox;
 				var radiusX = bbox.maximumWorld.x - bbox.minimumWorld.x;
 				var radiusY = bbox.maximumWorld.y - bbox.minimumWorld.y;
 				var radiusZ = bbox.maximumWorld.z - bbox.minimumWorld.z;
-				
+
 				var size = Math.max(this._checkWithEpsilon(radiusX), this._checkWithEpsilon(radiusY));
 				size = Math.max(size, this._checkWithEpsilon(radiusZ)) / 2;
-
 				bodyParameters = {
 					type: 'sphere',
 					/* bug with oimo : sphere needs 3 sizes in this case */
 					size: [size, -1, -1],
 					pos: [mesh.position.x, mesh.position.y, mesh.position.z],
-					rot: [mesh.rotation.x / OimoPlugin.TO_RAD, mesh.rotation.y / OimoPlugin.TO_RAD, mesh.rotation.z / OimoPlugin.TO_RAD]
+					rot: [mesh.rotation.x / TO_RAD, mesh.rotation.y / TO_RAD, mesh.rotation.z / TO_RAD]
 				};
-				
+
 			case PhysicsEngine.PlaneImpostor, PhysicsEngine.BoxImpostor:
 				var bbox = mesh.getBoundingInfo().boundingBox;
 				var min = bbox.minimumWorld;
@@ -209,19 +201,19 @@ typedef PhysicsMesh = {
 					type: 'box',
 					size: [sizeX, sizeY, sizeZ],
 					pos: [relativePosition.x, relativePosition.y, relativePosition.z],
-					rot: [mesh.rotation.x / OimoPlugin.TO_RAD, mesh.rotation.y / OimoPlugin.TO_RAD, mesh.rotation.z / OimoPlugin.TO_RAD]
+					rot: [mesh.rotation.x / TO_RAD, mesh.rotation.y / TO_RAD, mesh.rotation.z / TO_RAD]
 				};
 				
 		}
-		
+
 		return bodyParameters;
 	}
-	
+
 	public function unregisterMesh(mesh:AbstractMesh) {
 		for (index in 0...this._registeredMeshes.length) {
 			var registeredMesh = this._registeredMeshes[index];
 			if (registeredMesh.mesh == mesh || registeredMesh.mesh == mesh.parent) {
-				if (Reflect.hasField(registeredMesh, "body")) {
+				if (registeredMesh.body != null) {
 					this._world.removeRigidBody(registeredMesh.body.body);
 					this._unbindBody(registeredMesh.body);
 				}
@@ -230,7 +222,7 @@ typedef PhysicsMesh = {
 			}
 		}
 	}
-	
+
 	private function _unbindBody(body:Dynamic) {
 		for (index in 0...this._registeredMeshes.length) {
 			var registeredMesh = this._registeredMeshes[index];
@@ -239,7 +231,40 @@ typedef PhysicsMesh = {
 			}
 		}
 	}
-	
+
+	/**
+	 * Update the body position according to the mesh position
+	 * @param mesh
+	 */
+	public function updateBodyPosition(mesh:AbstractMesh) {
+
+		for (index in 0...this._registeredMeshes.length) {
+			var registeredMesh = this._registeredMeshes[index];
+			if (registeredMesh.mesh == mesh || registeredMesh.mesh == mesh.parent) {
+				var body = registeredMesh.body.body;
+				mesh.computeWorldMatrix(true);
+
+				var center = mesh.getBoundingInfo().boundingBox.center;
+				body.setPosition(center.x, center.y, center.z);
+				body.setRotation(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
+				return;
+			}
+			// Case where the parent has been updated
+			if (registeredMesh.mesh.parent == mesh) {
+				mesh.computeWorldMatrix(true);
+				registeredMesh.mesh.computeWorldMatrix(true);
+
+				var absolutePosition = registeredMesh.mesh.getAbsolutePosition();
+				var absoluteRotation = mesh.rotation;
+
+				var body = registeredMesh.body.body;
+				body.setPosition(absolutePosition.x, absolutePosition.y, absolutePosition.z);
+				body.setRotation(absoluteRotation.x, absoluteRotation.y, absoluteRotation.z);
+				return;
+			}
+		}
+	}
+
 	public function applyImpulse(mesh:AbstractMesh, force:Vector3, contactPoint:Vector3) {
 		for (index in 0...this._registeredMeshes.length) {
 			var registeredMesh = this._registeredMeshes[index];
@@ -247,15 +272,15 @@ typedef PhysicsMesh = {
 				// Get object mass to have a behaviour similar to cannon.js
 				var mass = registeredMesh.body.body.massInfo.mass;
 				// The force is scaled with the mass of object
-				registeredMesh.body.body.applyImpulse(contactPoint.scale(OimoPlugin.INV_SCALE), force.scale(OimoPlugin.INV_SCALE * mass));
+				registeredMesh.body.body.applyImpulse(contactPoint.scale(INV_SCALE), force.scale(INV_SCALE * mass));
 				return;
 			}
 		}
 	}
-	
+
 	public function createLink(mesh1:AbstractMesh, mesh2:AbstractMesh, pivot1:Vector3, pivot2:Vector3, ?options:Dynamic):Bool {
-		var body1:RigidBody = null;
-		var	body2:RigidBody = null;
+		var body1 = null;
+		var	body2 = null;
 		for (index in 0...this._registeredMeshes.length) {
 			var registeredMesh = this._registeredMeshes[index];
 			if (registeredMesh.mesh == mesh1) {
@@ -268,7 +293,7 @@ typedef PhysicsMesh = {
 			return false;
 		}
 		if (options == null) {
-			options = { };
+			options = {};
 		}
 
 		new Link({
@@ -283,91 +308,81 @@ typedef PhysicsMesh = {
 			pos2: [pivot2.x, pivot2.y, pivot2.z],
 			collision: options.collision,
 			spring: options.spring,
-			world: this._world,
-			name: null,
-			limit: null,
-			motor: null
+			world: this._world
 		});
 
 		return true;
+
 	}
-	
-	public function dispose():Void {
+
+	public function dispose() {
 		this._world.clear();
 		while (this._registeredMeshes.length > 0) {
 			this.unregisterMesh(this._registeredMeshes[0].mesh);
 		}
 	}
-	
+
 	public function isSupported():Bool {
 		return true;
 	}
-	
-	private function _getLastShape(body:RigidBody):Shape {
+
+	private function _getLastShape(body:RigidBody):Dynamic {
 		var lastShape = body.shapes;
 		while (lastShape.next != null) {
 			lastShape = lastShape.next;
 		}
 		return lastShape;
 	}
-	
-	public function updateBodyPosition(mesh:AbstractMesh) {
-		for (index in 0...this._registeredMeshes.length) {
-			var registeredMesh = this._registeredMeshes[index];
-			if (registeredMesh.mesh == mesh || registeredMesh.mesh == mesh.parent) {
-				var body = registeredMesh.body.body;
-				mesh.computeWorldMatrix(true);
-				
-				var center = mesh.getBoundingInfo().boundingBox.center;
-				body.setPosition(center.x, center.y, center.z);
-				body.setOrientation(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
-				return;
-			}
-			// Case where the parent has been updated
-			if (registeredMesh.mesh.parent == mesh) {
-				mesh.computeWorldMatrix(true);
-				registeredMesh.mesh.computeWorldMatrix(true);
-				
-				var absolutePosition = registeredMesh.mesh.getAbsolutePosition();
-				var absoluteRotation = mesh.rotation;
-				
-				var body = registeredMesh.body.body;
-				body.setPosition(absolutePosition.x, absolutePosition.y, absolutePosition.z);
-				body.setOrientation(absoluteRotation.x, absoluteRotation.y, absoluteRotation.z);
-				return;
-			}
-		}
-	}
-	
-	public function runOneStep(delta:Float) {
-		this._world.step(delta);
+
+	public function runOneStep(time:Float) {
+		this._world.step(time);
 		
 		// Update the position of all registered meshes
-		var m:Array<Float>;
-		for (i in 0...this._registeredMeshes.length) {			
+		var i = this._registeredMeshes.length;
+		var m:Array<Float> = [];
+		while (i-- > 0) {
+			
 			var body:RigidBody = this._registeredMeshes[i].body.body;
-			var mesh = this._registeredMeshes[i].mesh;
+			var mesh:Mesh = this._registeredMeshes[i].mesh;
 			var delta = this._registeredMeshes[i].delta;
 			
 			if (!body.sleeping) {
+				
 				if (body.shapes.next != null) {
-					var parentShape:Shape = this._getLastShape(body);
-					mesh.position.x = parentShape.position.x * OimoPlugin.WORLD_SCALE;
-					mesh.position.y = parentShape.position.y * OimoPlugin.WORLD_SCALE;
-					mesh.position.z = parentShape.position.z * OimoPlugin.WORLD_SCALE;
-					/*var mtx = Matrix.FromArray(body.getMatrix());
+					var parentShape = this._getLastShape(body);
+					mesh.position.x = parentShape.position.x * WORLD_SCALE;
+					mesh.position.y = parentShape.position.y * WORLD_SCALE;
+					mesh.position.z = parentShape.position.z * WORLD_SCALE;
+					var brm = body.rotation;
+					m = [
+						brm.e00, brm.e01, brm.e02, 0,
+						brm.e10, brm.e11, brm.e12, 0,
+						brm.e20, brm.e21, brm.e22, 0,
+						      0,       0,       0, 1
+					];
+					
+					var mtx = Matrix.FromArray(m);
 					
 					if (mesh.rotationQuaternion == null) {
 						mesh.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 					}
 					mesh.rotationQuaternion.fromRotationMatrix(mtx);
-					mesh.computeWorldMatrix();*/
+					mesh.computeWorldMatrix();
 					
-				} else {					
+				} else {
+					var brm = body.rotation;
+					m = [
+						brm.e00, brm.e01, brm.e02, 0,
+						brm.e10, brm.e11, brm.e12, 0,
+						brm.e20, brm.e21, brm.e22, 0,
+						      0,       0,       0, 1
+					];
+					var mtx = Matrix.FromArray(m);
+					
 					// Body position
-					var bodyX = body.position.x * WORLD_SCALE;// mtx.m[12],
-					var	bodyY = body.position.y * WORLD_SCALE;// mtx.m[13],
-					var	bodyZ = body.position.z * WORLD_SCALE;// mtx.m[14];
+					var bodyX = mtx.m[12];
+					var	bodyY = mtx.m[13];
+					var	bodyZ = mtx.m[14];
 						
 					if (delta == null) {
 						mesh.position.x = bodyX;
@@ -382,9 +397,8 @@ typedef PhysicsMesh = {
 					if (mesh.rotationQuaternion == null) {
 						mesh.rotationQuaternion = new Quaternion(0, 0, 0, 1);
 					}
-					
-					/*mesh.rotationQuaternion.fromRotationMatrix(mtx);
-					mesh.computeWorldMatrix();*/
+					Quaternion.FromRotationMatrixToRef(mtx, mesh.rotationQuaternion);
+					mesh.computeWorldMatrix();
 				}
 			}
 		}

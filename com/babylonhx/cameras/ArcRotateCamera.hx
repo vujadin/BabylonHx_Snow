@@ -130,7 +130,7 @@ import snow.input.Keycodes;
 	}
 
 	// Methods
-	override public function attachControl(element:Dynamic, noPreventDefault:Bool = false) {
+	override public function attachControl(?element:Dynamic, ?noPreventDefault:Bool) {
 		var previousPosition:Dynamic = null;
 		var pointerId:Int = -1;
 		
@@ -231,7 +231,7 @@ import snow.input.Keycodes;
 		Main.mouseWheel.push(_wheel);	
 	}
 
-	override public function detachControl(element:Dynamic) {
+	override public function detachControl(?element:Dynamic) {
 		if (this._attachedElement != element) {
 			return;
 		}

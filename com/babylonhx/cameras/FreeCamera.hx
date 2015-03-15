@@ -58,7 +58,7 @@ import snow.utils.Libs;
 	}
 
 	// Controls
-	override public function attachControl(element:Dynamic, noPreventDefault:Bool = false/*?noPreventDefault:Bool*/):Void {
+	override public function attachControl(?element:Dynamic, ?noPreventDefault:Bool) {
 		var previousPosition:Dynamic = null;// { x: 0, y: 0 };
 		var engine = this.getEngine();
 		
@@ -156,7 +156,7 @@ import snow.utils.Libs;
 		Main.mouseMove.push(_onMouseMove);
 	}
 
-	override public function detachControl(element:Dynamic):Void {
+	override public function detachControl(?element:Dynamic) {
 		if (this._attachedElement != element) {
 			return;
 		}
@@ -173,7 +173,7 @@ import snow.utils.Libs;
 		}
 	}
 
-	public function _collideWithWorld(velocity:Vector3):Void {
+	public function _collideWithWorld(velocity:Vector3) {
 		var globalPosition:Vector3 = null;
 		
 		if (this.parent != null) {
@@ -196,7 +196,7 @@ import snow.utils.Libs;
 		}
 	}
 
-	public function _checkInputs():Void {
+	public function _checkInputs() {
 		if (this._localDirection == null) {
 			this._localDirection = Vector3.Zero();
 			this._transformedDirection = Vector3.Zero();
@@ -227,7 +227,7 @@ import snow.utils.Libs;
 		return this._needMoveForGravity || Math.abs(this.cameraDirection.x) > 0 || Math.abs(this.cameraDirection.y) > 0 || Math.abs(this.cameraDirection.z) > 0;
 	}
 
-	override public function _updatePosition():Void {
+	override public function _updatePosition() {
 		if (this.checkCollisions && this.getScene().collisionsEnabled) {
 			this._collideWithWorld(this.cameraDirection);
 			if (this.applyGravity) {
@@ -240,7 +240,7 @@ import snow.utils.Libs;
 		}
 	}
 
-	override public function _update():Void {
+	override public function _update() {
 		this._checkInputs();
 		super._update();
 	}

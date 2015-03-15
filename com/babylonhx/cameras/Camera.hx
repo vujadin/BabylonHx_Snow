@@ -161,11 +161,11 @@ import com.babylonhx.tools.SmartArray;
 	}
 
 	// Controls
-	public function attachControl(element:Dynamic, noPreventDefault:Bool = false) {
+	public function attachControl(?element:Dynamic, ?noPreventDefault:Bool) {
 		
 	}
 
-	public function detachControl(element:Dynamic) {
+	public function detachControl(?element:Dynamic) {
 		
 	}
 
