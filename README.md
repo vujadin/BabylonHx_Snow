@@ -22,3 +22,5 @@ Navigate to the folder where files are downloaded and run from command line:
 You should see this in your browser when build is done:
 ![Alt text](/samples/scrshot.jpg?raw=true "Basic scene")
 
+You can get assets required by other samples from Babylon.js samples repo https://github.com/BabylonJS/Samples
+
