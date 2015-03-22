@@ -1,6 +1,7 @@
 package samples;
 
 import com.babylonhx.cameras.FreeCamera;
+import com.babylonhx.cameras.TouchCamera;
 import com.babylonhx.lights.DirectionalLight;
 import com.babylonhx.lights.PointLight;
 import com.babylonhx.materials.StandardMaterial;

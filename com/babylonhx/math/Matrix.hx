@@ -1,14 +1,9 @@
 package com.babylonhx.math;
+
 import com.babylonhx.cameras.Camera;
 import com.babylonhx.tools.Tools;
 
-#if openfl
-import openfl.utils.Float32Array;
-#elseif snow
 import snow.utils.Float32Array;
-#elseif kha
-
-#end
 
 /**
 * ...
@@ -81,8 +76,10 @@ import snow.utils.Float32Array;
 		return this.toArray();
 	}
 
-	public function invert() {
+	public function invert():Matrix {
 		this.invertToRef(this);
+		
+		return this;
 	}
 
 	inline public function invertToRef(other:Matrix) {
@@ -377,6 +374,12 @@ import snow.utils.Float32Array;
 	inline public static function RotationX(angle:Float):Matrix {
 		var result = new Matrix();
 		Matrix.RotationXToRef(angle, result);
+		return result;
+	}
+	
+	inline public static function Invert(source:Matrix):Matrix {
+		var result = new Matrix();
+		source.invertToRef(result);
 		return result;
 	}
 

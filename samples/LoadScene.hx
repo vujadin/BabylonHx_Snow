@@ -11,6 +11,7 @@ import com.babylonhx.postprocess.BlackAndWhitePostProcess;
 import com.babylonhx.Scene;
 import com.babylonhx.loading.SceneLoader;
 import com.babylonhx.loading.plugins.BabylonFileLoader;
+import com.babylonhx.loading.plugins.BabylonLiteFileLoader;
 
 #if !js
 import haxe.Json;
@@ -37,8 +38,9 @@ class LoadScene {
 		#end
 		
 		SceneLoader.RegisterPlugin(BabylonFileLoader.plugin);
-		SceneLoader.Load("assets/scenes/Train/", "Train.babylon", scene.getEngine(), function(s:Scene) {
+		/*SceneLoader.Load("assets/scenes/Train/", "Train_lite.babylon", scene.getEngine(), function(s:Scene) {
 			scene = s;
+			trace(scene.cameras.length);
 			scene.collisionsEnabled = false;
 			for (index in 0...scene.cameras.length) {
 				scene.cameras[index].minZ = 10;
@@ -50,30 +52,28 @@ class LoadScene {
 				mesh.isBlocker = mesh.checkCollisions;
 			}
 			
-			scene.activeCamera = scene.cameras[6];
+			scene.activeCamera = scene.cameras[8];
 			scene.activeCamera.attachControl(this);
-			//cast(scene.getMaterialByName("terrain_eau"), StandardMaterial).bumpTexture = null;
+			cast(scene.getMaterialByName("terrain_eau"), StandardMaterial).bumpTexture = null;
 			
 			// Postprocesses
-			//var bwPostProcess = new BlackAndWhitePostProcess("Black and White", 1.0, scene.cameras[2]);
-			//scene.cameras[2].name = "B&W";
+			var bwPostProcess = new BlackAndWhitePostProcess("Black and White", 1.0, scene.cameras[2]);
+			scene.cameras[2].name = "B&W";
+				
+			s.getEngine().runRenderLoop(function () {
+				s.render();
+			});
+		});*/	
+		SceneLoader.Load("assets/scenes/karte/", "karte.babylon", scene.getEngine(), function(s:Scene) {
+			scene = s;			
+			if (s.activeCamera != null) {
+				s.activeCamera.attachControl(this);					
+			} 
 				
 			s.getEngine().runRenderLoop(function () {
 				s.render();
 			});
 		});	
-		/*SceneLoader.Load("assets/scenes/V8/", "v8.babylon", scene.getEngine(), function(s:Scene) {
-			scene = s;			
-			//s.executeWhenReady(function() {
-				if (s.activeCamera != null) {
-					s.activeCamera.attachControl(this);					
-				} 
-					
-				s.getEngine().runRenderLoop(function () {
-					s.render();
-				});
-			//});
-		});*/	
 		
 	}
 	

@@ -4,15 +4,7 @@ import com.babylonhx.animations.Animation;
 import com.babylonhx.animations.IAnimatable;
 import com.babylonhx.math.Matrix;
 
-#if nme
-import nme.gl.GLTexture;
-#elseif openfl
-import openfl.gl.GLTexture;
-#elseif snow
 import snow.render.opengl.GL;
-#elseif kha
-
-#end
 
 /**
  * ...

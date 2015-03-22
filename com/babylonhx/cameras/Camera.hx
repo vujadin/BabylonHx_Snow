@@ -47,6 +47,9 @@ import com.babylonhx.tools.SmartArray;
 	
 	public var _activeMeshes = new SmartArray(256);
 	
+	private var _globalPosition:Vector3 = Vector3.Zero();
+	public var globalPosition(get, never):Vector3;
+	
 
 	public function new(name:String, position:Vector3, scene:Scene) {
 		super(name, scene);
@@ -57,6 +60,10 @@ import com.babylonhx.tools.SmartArray;
 		if (scene.activeCamera == null) {
 			scene.activeCamera = this;
 		}
+	}
+	
+	private function get_globalPosition():Vector3 {
+		return this._globalPosition;
 	}
 	
 	public function getActiveMeshes():SmartArray {
@@ -285,7 +292,8 @@ import com.babylonhx.tools.SmartArray;
 		
 		if (this.parent == null
 			|| this.parent.getWorldMatrix() == null
-			|| this.isSynchronized()) {
+			|| this.isSynchronized()) {				
+			this._globalPosition.copyFrom(this.position);
 			return this._computedViewMatrix;
 		}
 		
@@ -300,6 +308,8 @@ import com.babylonhx.tools.SmartArray;
 		this._computedViewMatrix.invert();
 		
 		this._currentRenderId = this.getScene().getRenderId();
+		this._globalPosition.copyFromFloats(this._computedViewMatrix.m[12], this._computedViewMatrix.m[13], this._computedViewMatrix.m[14]);
+		
 		return this._computedViewMatrix;
 	}
 

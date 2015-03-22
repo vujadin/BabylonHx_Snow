@@ -17,6 +17,16 @@ package com.babylonhx.math;
 		return this._points;
 	}
 	
+	public function _continue(curve:Curve3):Curve3 {
+		var lastPoint = this._points[this._points.length - 1];
+		var continuedPoints = this._points.slice();
+		var curvePoints = curve.getPoints();
+		for (i in 1...curvePoints.length) {
+			continuedPoints.push(curvePoints[i].add(lastPoint));
+		}
+		return new Curve3(continuedPoints);
+	}
+	
 	// QuadraticBezier(origin_V3, control_V3, destination_V3 )
 	public static function CreateQuadraticBezier(v0:Vector3, v1:Vector3, v2:Vector3, nbPoints:Int = 3):Curve3 {
 		nbPoints = nbPoints > 2 ? nbPoints : 3;
@@ -56,7 +66,5 @@ package com.babylonhx.math;
 		
 		return new Curve3(bez);
 	}
-
-	// Spline (cubic spline) : to be done here ...
 	
 }

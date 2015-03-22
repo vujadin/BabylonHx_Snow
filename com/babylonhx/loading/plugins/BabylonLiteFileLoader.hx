@@ -1426,7 +1426,9 @@ import snow.assets.AssetText;
             var trigger = parsedActions.children[i];
 			
             if (trigger.properties.length > 0) {
-                triggerParams = { trigger: Reflect.field(ActionManager, trigger.name), parameter: scene.getMeshByName(cast(trigger.properties, Array<Dynamic>)[0].value) };
+                var param:Dynamic = cast(trigger.properties, Array<Dynamic>)[0].value;
+				var value = cast(trigger.properties, Array<Dynamic>)[0].targetType == null ? param : scene.getMeshByName(cast param);
+				triggerParams = { trigger: Reflect.field(ActionManager, trigger.name), parameter: value };
             }
             else {
                 triggerParams = Reflect.field(ActionManager, trigger.name);

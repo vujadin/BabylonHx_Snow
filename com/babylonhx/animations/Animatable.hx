@@ -60,15 +60,15 @@ package com.babylonhx.animations;
 		return null;
 	}
 
-	public function pause():Void {
+	public function pause() {
 		this._paused = true;
 	}
 
-	public function restart():Void {
+	public function restart() {
 		this._paused = false;
 	}
 
-	public function stop():Void {
+	public function stop() {
 		var index = this._scene._activeAnimatables.indexOf(this);
 		
 		if (index > -1) {
@@ -103,6 +103,12 @@ package com.babylonhx.animations;
 			var animation = animations[index];
 			var isRunning = animation.animate(delay - this._localDelayOffset, this.fromFrame, this.toFrame, this.loopAnimation, this.speedRatio);
 			running = running || isRunning;
+		}
+		
+		if (!running) {
+			// Remove from active animatables
+			var index = this._scene._activeAnimatables.indexOf(this);
+			this._scene._activeAnimatables.splice(index, 1);
 		}
 		
 		if (!running && this.onAnimationEnd != null) {

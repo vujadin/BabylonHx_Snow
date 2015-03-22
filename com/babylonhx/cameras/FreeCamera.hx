@@ -62,9 +62,6 @@ import snow.utils.Libs;
 		var previousPosition:Dynamic = null;// { x: 0, y: 0 };
 		var engine = this.getEngine();
 		
-		if (this._attachedElement != null) {
-			return;
-		}
 		this._attachedElement = element;
 		
 		if (this._onMouseDown == null) {
@@ -149,25 +146,20 @@ import snow.utils.Libs;
 			};
 		}
 		
-		Main.keyDown.push(_onKeyDown);
-		Main.keyUp.push(_onKeyUp);
-		Main.mouseDown.push(_onMouseDown);
-		Main.mouseUp.push(_onMouseUp);
-		Main.mouseMove.push(_onMouseMove);
+		Engine.keyDown.push(_onKeyDown);
+		Engine.keyUp.push(_onKeyUp);
+		Engine.mouseDown.push(_onMouseDown);
+		Engine.mouseUp.push(_onMouseUp);
+		Engine.mouseMove.push(_onMouseMove);
 	}
 
-	override public function detachControl(?element:Dynamic) {
-		if (this._attachedElement != element) {
-			return;
-		}
+	override public function detachControl(?element:Dynamic) {	
+		Engine.keyDown.remove(_onKeyDown);
+		Engine.keyUp.remove(_onKeyUp);
+		Engine.mouseDown.remove(_onMouseDown);
+		Engine.mouseUp.remove(_onMouseUp);
+		Engine.mouseMove.remove(_onMouseMove);
 		
-		Main.keyDown.remove(_onKeyDown);
-		Main.keyUp.remove(_onKeyUp);
-		Main.mouseDown.remove(_onMouseDown);
-		Main.mouseUp.remove(_onMouseUp);
-		Main.mouseMove.remove(_onMouseMove);
-		
-		this._attachedElement = null;
 		if (this._reset != null) {
 			this._reset();
 		}

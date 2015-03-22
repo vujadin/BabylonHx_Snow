@@ -42,6 +42,11 @@ import com.babylonhx.loading.plugins.BabylonFileLoader;
 		var dotPosition = sceneFilename.lastIndexOf(".");
 		
 		var queryStringPosition = sceneFilename.indexOf("?");
+		
+		if (queryStringPosition == -1) {
+            queryStringPosition = sceneFilename.length;
+        }
+		
 		var extension = sceneFilename.substring(dotPosition, queryStringPosition).toLowerCase();
 		
 		for (index in 0...SceneLoader._registeredPlugins.length) {

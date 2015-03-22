@@ -4,6 +4,7 @@ import com.babylonhx.cameras.Camera;
 import com.babylonhx.materials.Effect;
 import com.babylonhx.materials.textures.BabylonTexture;
 import com.babylonhx.materials.textures.Texture;
+import com.babylonhx.math.Color4;
 import com.babylonhx.tools.SmartArray;
 import com.babylonhx.tools.Tools;
 
@@ -26,6 +27,7 @@ import snow.render.opengl.GL;
 	public var width:Float = -1;
 	public var height:Float = -1;
 	public var renderTargetSamplingMode:Int;
+	public var clearColor:Color4;
 
 	private var _camera:Camera;
 	private var _scene:Scene;
@@ -103,7 +105,11 @@ import snow.render.opengl.GL;
 		}
 		
 		// Clear
-		this._engine.clear(scene.clearColor, scene.autoClear || scene.forceWireframe, true);
+		if (this.clearColor != null) {
+            this._engine.clear(this.clearColor, true, true);
+        } else {
+            this._engine.clear(scene.clearColor, scene.autoClear || scene.forceWireframe, true);
+        }
 		
 		if (this._reusable) {
 			this._currentRenderTextureId = (this._currentRenderTextureId + 1) % 2;

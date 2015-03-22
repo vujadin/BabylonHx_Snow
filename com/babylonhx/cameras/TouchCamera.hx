@@ -1,4 +1,6 @@
 package com.babylonhx.cameras;
+
+import com.babylonhx.math.Matrix;
 import com.babylonhx.math.Vector3;
 
 /**
@@ -7,131 +9,104 @@ import com.babylonhx.math.Vector3;
  */
 class TouchCamera extends FreeCamera {
 
-	private var _offsetX:Float = null;
-	private var _offsetY:Float = null;
+	private var _offsetX:Float = Math.NEGATIVE_INFINITY;
+	private var _offsetY:Float = Math.NEGATIVE_INFINITY;
 	private var _pointerCount:Int = 0;
 	private var _pointerPressed:Array<Int> = [];
 	private var _onPointerDown:Dynamic;
 	private var _onPointerUp:Dynamic;
 	private var _onPointerMove:Dynamic;
 	
-	public var angularSensibility:Float = 200000.0;
 	public var moveSensibility:Float = 500.0;
 
 	
 	public function new(name:String, position:Vector3, scene:Scene) {
 		super(name, position, scene);
+		this.angularSensibility = 200000.0;
 	}
 
-	override public function attachControl(?canvas:Dynamic, ?noPreventDefault:Bool): void {
+	override public function attachControl(?canvas:Dynamic, ?noPreventDefault:Bool) {
 		var previousPosition:Dynamic = null;// { x: 0, y: 0 };
 		
 		if (this._onPointerDown == null) {
-
-			this._onPointerDown = (evt) => {
-
-				if (!noPreventDefault) {
-					evt.preventDefault();
-				}
-
-				this._pointerPressed.push(evt.pointerId);
-
-				if (this._pointerPressed.length !== 1) {
+			this._onPointerDown = function(x:Float, y:Float, touch_id:Int, timestamp:Float) {
+				trace(touch_id);
+				this._pointerPressed.push(touch_id);
+				
+				if (this._pointerPressed.length != 1) {
 					return;
 				}
-
+				
 				previousPosition = {
-					x: evt.clientX,
-					y: evt.clientY
+					x: x,
+					y: y
 				};
 			};
-
-			this._onPointerUp = (evt) => {
-				if (!noPreventDefault) {
-					evt.preventDefault();
-				}
-
-				var index: number = this._pointerPressed.indexOf(evt.pointerId);
-
-				if (index === -1) {
+			
+			this._onPointerUp = function(x:Float, y:Float, touch_id:Int, timestamp:Float) {
+				var index:Int = this._pointerPressed.indexOf(touch_id);
+				
+				if (index == -1) {
 					return;
 				}
 				this._pointerPressed.splice(index, 1);
-
+				
 				if (index != 0) {
 					return;
 				}
+				
 				previousPosition = null;
-				this._offsetX = null;
-				this._offsetY = null;
+				this._offsetX = Math.NEGATIVE_INFINITY;
+				this._offsetY = Math.NEGATIVE_INFINITY;
 			};
-
-			this._onPointerMove = (evt) => {
-				if (!noPreventDefault) {
-					evt.preventDefault();
-				}
-
-				if (!previousPosition) {
+			
+			this._onPointerMove = function(x:Float, y:Float, dx:Float, dy:Float, touch_id:Int, timestamp:Float) {
+				trace(x + ", " + y);
+				if (previousPosition == null) {
 					return;
 				}
-
-				var index: number = this._pointerPressed.indexOf(evt.pointerId);
-
+				
+				var index:Int = this._pointerPressed.indexOf(touch_id);
+				
 				if (index != 0) {
 					return;
 				}
-
-				this._offsetX = evt.clientX - previousPosition.x;
-				this._offsetY = -(evt.clientY - previousPosition.y);
+				
+				this._offsetX = x - previousPosition.x;
+				this._offsetY = -(y - previousPosition.y);
 			};
-
-			this._onLostFocus = () => {
-				this._offsetX = null;
-				this._offsetY = null;
+			
+			this._onLostFocus = function() {
+				this._offsetX = Math.NEGATIVE_INFINITY;
+				this._offsetY = Math.NEGATIVE_INFINITY;
 			};
 		}
-
-		canvas.addEventListener("pointerdown", this._onPointerDown);
-		canvas.addEventListener("pointerup", this._onPointerUp);
-		canvas.addEventListener("pointerout", this._onPointerUp);
-		canvas.addEventListener("pointermove", this._onPointerMove);
-
-		BABYLON.Tools.RegisterTopRootEvents([
-			{ name: "blur", handler: this._onLostFocus }
-		]);
+		
+		Engine.touchDown.push(this._onPointerDown);
+		Engine.touchUp.push(this._onPointerUp);
+		Engine.touchMove.push(this._onPointerMove);
 	}
 
-	public detachControl(canvas: HTMLCanvasElement): void {
-		if (this._attachedCanvas != canvas) {
-			return;
-		}
-
-		canvas.removeEventListener("pointerdown", this._onPointerDown);
-		canvas.removeEventListener("pointerup", this._onPointerUp);
-		canvas.removeEventListener("pointerout", this._onPointerUp);
-		canvas.removeEventListener("pointermove", this._onPointerMove);
-
-		BABYLON.Tools.UnregisterTopRootEvents([
-			{ name: "blur", handler: this._onLostFocus }
-		]);
-
-		this._attachedCanvas = null;
+	override public function detachControl(?canvas:Dynamic) {
+		Engine.touchDown.remove(this._onPointerDown);
+		Engine.touchUp.remove(this._onPointerUp);
+		Engine.touchMove.remove(this._onPointerMove);
 	}
 
-	public _checkInputs(): void {
-		if (!this._offsetX) {
+	override public function _checkInputs() {
+		if (this._offsetX == Math.NEGATIVE_INFINITY) {
 			return;
 		}
 		this.cameraRotation.y += this._offsetX / this.angularSensibility;
-
+		
 		if (this._pointerPressed.length > 1) {
 			this.cameraRotation.x += -this._offsetY / this.angularSensibility;
 		} else {
 			var speed = this._computeLocalCameraSpeed();
-			var direction = new BABYLON.Vector3(0, 0, speed * this._offsetY / this.moveSensibility);
-
-			BABYLON.Matrix.RotationYawPitchRollToRef(this.rotation.y, this.rotation.x, 0, this._cameraRotationMatrix);
-			this.cameraDirection.addInPlace(BABYLON.Vector3.TransformCoordinates(direction, this._cameraRotationMatrix));
+			var direction = new Vector3(0, 0, speed * this._offsetY / this.moveSensibility);
+			
+			Matrix.RotationYawPitchRollToRef(this.rotation.y, this.rotation.x, 0, this._cameraRotationMatrix);
+			this.cameraDirection.addInPlace(Vector3.TransformCoordinates(direction, this._cameraRotationMatrix));
 		}
 	}
 	

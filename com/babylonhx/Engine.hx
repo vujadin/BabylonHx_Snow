@@ -15,21 +15,19 @@ import com.babylonhx.mesh.VertexBuffer;
 import com.babylonhx.math.Viewport;
 import com.babylonhx.postprocess.PostProcess;
 import com.babylonhx.tools.Tools;
-import haxe.CallStack;
-import snow.assets.AssetImage;
-import snow.Snow;
-import snow.utils.UInt8Array;
 
-import snow.App;
-import snow.Core;
 import snow.utils.Libs;
+import snow.assets.AssetImage;
 import snow.render.opengl.GL;
+import snow.utils.UInt8Array;
 import snow.utils.Float32Array;
 import snow.utils.Int32Array;
 import snow.utils.Int16Array;
 import snow.utils.ArrayBufferView;
 import snow.utils.ByteArray;
-
+import snow.Snow;
+import snow.App;
+import snow.Core;
 
 #if js
 import js.Browser;
@@ -135,9 +133,19 @@ import js.Browser;
 	private var _uintIndicesCurrentlySet:Bool = false;
 
 	private var _workingCanvas:AssetImage;
-	//private var _workingContext:OpenGLView;
 	
 	public static var app:App;
+	
+	// quick and dirty solution to handle mouse/keyboard 
+	public static var mouseDown:Array<Dynamic> = [];
+	public static var mouseUp:Array<Dynamic> = [];
+	public static var mouseMove:Array<Dynamic> = [];
+	public static var mouseWheel:Array<Dynamic> = [];
+	public static var touchDown:Array<Dynamic> = [];
+	public static var touchUp:Array<Dynamic> = [];
+	public static var touchMove:Array<Dynamic> = [];
+	public static var keyUp:Array<Dynamic> = [];
+	public static var keyDown:Array<Dynamic> = [];
 
 	
 	public function new(canvas:App, antialias:Bool = false, ?options:Dynamic) {
@@ -240,51 +248,9 @@ import js.Browser;
 		
 		// Fullscreen
 		this.isFullscreen = false;
-		// TODO
-		/*this._onFullscreenChange = () => {
-			if (document.fullscreen !== undefined) {
-				this.isFullscreen = document.fullscreen;
-			} else if (document.mozFullScreen !== undefined) {
-				this.isFullscreen = document.mozFullScreen;
-			} else if (document.webkitIsFullScreen !== undefined) {
-				this.isFullscreen = document.webkitIsFullScreen;
-			} else if (document.msIsFullScreen !== undefined) {
-				this.isFullscreen = document.msIsFullScreen;
-			}
-			
-			// Pointer lock
-			if (this.isFullscreen && this._pointerLockRequested) {
-				canvas.requestPointerLock = canvas.requestPointerLock ||
-				canvas.msRequestPointerLock ||
-				canvas.mozRequestPointerLock ||
-				canvas.webkitRequestPointerLock;
 				
-				if (canvas.requestPointerLock) {
-					canvas.requestPointerLock();
-				}
-			}
-		};
-		
-		document.addEventListener("fullscreenchange", this._onFullscreenChange, false);
-		document.addEventListener("mozfullscreenchange", this._onFullscreenChange, false);
-		document.addEventListener("webkitfullscreenchange", this._onFullscreenChange, false);
-		document.addEventListener("msfullscreenchange", this._onFullscreenChange, false);*/
-		
 		// Pointer lock
-		this.isPointerLock = false;
-		// TODO
-		/*this._onPointerLockChange = () => {
-			this.isPointerLock = (document.mozPointerLockElement === canvas ||
-			document.webkitPointerLockElement === canvas ||
-			document.msPointerLockElement === canvas ||
-			document.pointerLockElement === canvas
-			);
-		};
-		
-		document.addEventListener("pointerlockchange", this._onPointerLockChange, false);
-		document.addEventListener("mspointerlockchange", this._onPointerLockChange, false);
-		document.addEventListener("mozpointerlockchange", this._onPointerLockChange, false);
-		document.addEventListener("webkitpointerlockchange", this._onPointerLockChange, false);*/
+		this.isPointerLock = false;		
 	}
 
 	public function getAspectRatio(camera:Camera):Float {
@@ -550,7 +516,7 @@ import js.Browser;
 	}
 
 	inline public function createIndexBuffer(indices:Array<Int>):BabylonBuffer {
-		var vbo = GL.createBuffer();
+		var vbo = GL.createBuffer();		
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, vbo);
 		
 		// Check for 32 bits indices
@@ -1201,6 +1167,18 @@ import js.Browser;
 		
 		return texture;
 	}
+	
+	/*public function updateDynamicTexture(texture:BabylonTexture, canvas:Array<Int>, invertY:Bool) {
+		GL.bindTexture(GL.TEXTURE_2D, texture.data);
+		//GL.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, invertY ? 1 : 0);
+		GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, cast canvas,);
+		if (texture.generateMipMaps) {
+			GL.generateMipmap(GL.TEXTURE_2D);
+		}
+		GL.bindTexture(GL.TEXTURE_2D, null);
+		this._activeTexturesCache = [];
+		texture.isReady = true;
+	}*/
 	
 	public function updateTextureSamplingMode(samplingMode:Int, texture:BabylonTexture) {
 		var filters = getSamplingParameters(samplingMode, texture.generateMipMaps);

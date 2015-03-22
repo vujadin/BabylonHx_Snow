@@ -1,4 +1,5 @@
 package com.babylonhx.math;
+
 import com.babylonhx.collisions.IntersectionInfo;
 import com.babylonhx.culling.BoundingBox;
 import com.babylonhx.culling.BoundingSphere;

@@ -1,19 +1,9 @@
 package com.babylonhx.materials.textures;
+
 import com.babylonhx.ISmartArrayCompatible;
 
-#if nme
-import nme.gl.GLTexture;
-import nme.gl.GLFramebuffer;
-import nme.gl.GLRenderbuffer;
-#elseif openfl
-import openfl.gl.GLTexture;
-import openfl.gl.GLFramebuffer;
-import openfl.gl.GLRenderbuffer;
-#elseif snow
 import snow.render.opengl.GL;
-#elseif kha
 
-#end
 
 /**
  * ...

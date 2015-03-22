@@ -41,10 +41,6 @@ import com.babylonhx.mesh.AbstractMesh;
 		Matrix.PerspectiveFovLHToRef(this.angle, 1.0, activeCamera.minZ, activeCamera.maxZ, matrix);
 	}
 
-	public function getVSMOffset():Float {
-		return 0.2;
-	}
-
 	public function supportsVSM():Bool {
 		return true;
 	}
@@ -73,7 +69,7 @@ import com.babylonhx.mesh.AbstractMesh;
 	
 	override public function transferToEffect(effect:Effect, ?positionUniformName:String, ?directionUniformName:String):Void {
 		var normalizeDirection:Vector3 = Vector3.Zero();
-
+		
 		if (this.parent != null && this.parent.getWorldMatrix() != null) {
             if (this._transformedDirection == null) {
                 this._transformedDirection = Vector3.Zero();
@@ -91,7 +87,7 @@ import com.babylonhx.mesh.AbstractMesh;
 			effect.setFloat4(positionUniformName, this.position.x, this.position.y, this.position.z, this.exponent);
 			normalizeDirection = Vector3.Normalize(this.direction);
 		}
-
+		
 		effect.setFloat4(directionUniformName, normalizeDirection.x, normalizeDirection.y, normalizeDirection.z, Math.cos(this.angle * 0.5));
 	}
 
@@ -99,9 +95,9 @@ import com.babylonhx.mesh.AbstractMesh;
 		if (this._worldMatrix == null) {
 			this._worldMatrix = Matrix.Identity();
 		}
-
+		
 		Matrix.TranslationToRef(this.position.x, this.position.y, this.position.z, this._worldMatrix);
-
+		
 		return this._worldMatrix;
 	}
 	

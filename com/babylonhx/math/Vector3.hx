@@ -2,15 +2,7 @@ package com.babylonhx.math;
 
 import com.babylonhx.tools.Tools;
 
-#if nme
-import nme.utils.Float32Array;
-#elseif openfl
-import openfl.utils.Float32Array;
-#elseif show
 import snow.utils.Float32Array;
-#elseif kha
-
-#end
 
 /**
  * ...
@@ -211,6 +203,15 @@ import snow.utils.Float32Array;
 	}
 
 	// Statics
+	inline public static function GetClipFactor(vector0:Vector3, vector1:Vector3, axis:Vector3, size:Float):Float {
+        var d0 = Vector3.Dot(vector0, axis) - size;
+        var d1 = Vector3.Dot(vector1, axis) - size;
+		
+        var s = d0 / (d0 - d1);
+		
+        return s;
+    }
+	
 	inline public static function FromArray(array:Array<Float>, offset:Int = 0):Vector3 {
 		return new Vector3(array[offset], array[offset + 1], array[offset + 2]);
 	}

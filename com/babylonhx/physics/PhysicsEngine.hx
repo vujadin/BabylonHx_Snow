@@ -2,7 +2,7 @@ package com.babylonhx.physics;
 
 import com.babylonhx.math.Vector3;
 import com.babylonhx.mesh.AbstractMesh;
-//import com.babylonhx.physics.plugins.OimoPlugin;
+import com.babylonhx.physics.plugins.OimoPlugin;
 
 /**
  * ...
@@ -29,7 +29,7 @@ import com.babylonhx.mesh.AbstractMesh;
 	
 
 	public function new(?plugin:IPhysicsEnginePlugin) {
-		//this._currentPlugin = plugin != null ? plugin : new OimoPlugin();
+		this._currentPlugin = plugin != null ? plugin : new OimoPlugin();
 	}
 
 	public function _initialize(?gravity:Vector3) {

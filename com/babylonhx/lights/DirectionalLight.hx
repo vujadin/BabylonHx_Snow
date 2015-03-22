@@ -20,7 +20,6 @@ import com.babylonhx.mesh.AbstractMesh;
 	private var _worldMatrix:Matrix;
 	
 	public var shadowOrthoScale:Float = 1.1;
-	public var shadowOrthoDepthScale:Float = 3;
 	
 
 	public function new(name:String, direction:Vector3, scene:Scene) {
@@ -44,8 +43,6 @@ import com.babylonhx.mesh.AbstractMesh;
 		var orthoRight = Math.NEGATIVE_INFINITY;
 		var orthoTop = Math.NEGATIVE_INFINITY;
 		var orthoBottom = Math.POSITIVE_INFINITY;
-		var orthoNear = Math.POSITIVE_INFINITY;
-		var orthoFar = Math.NEGATIVE_INFINITY;
 		
 		var tempVector3 = Vector3.Zero();
 		
@@ -83,25 +80,15 @@ import com.babylonhx.mesh.AbstractMesh;
 				if (tempVector3.y > orthoTop) {
 					orthoTop = tempVector3.y;
 				}
-				
-				if (tempVector3.z < orthoNear) {
-					orthoNear = tempVector3.z;
-				}
-				if (tempVector3.z > orthoFar) {
-					orthoFar = tempVector3.z;
-				}
 			}
 		}
 		
-		var orthoWidth = Math.max(Math.abs(orthoRight), Math.abs(orthoLeft)) * this.shadowOrthoScale;
-		var orthoHeight = Math.max(Math.abs(orthoTop), Math.abs(orthoBottom)) * this.shadowOrthoScale;
-		var orthoDepth = Math.max(Math.abs(orthoNear), Math.abs(orthoFar)) * this.shadowOrthoDepthScale;
+		var xOffset = orthoRight - orthoLeft;
+		var yOffset = orthoTop - orthoBottom;
 		
-		Matrix.OrthoOffCenterLHToRef(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, useVSM ? -orthoDepth : activeCamera.minZ, orthoDepth, matrix);
-	}
-
-	public function getVSMOffset():Float {
-		return 0.55;
+		Matrix.OrthoOffCenterLHToRef(orthoLeft - xOffset * this.shadowOrthoScale, orthoRight + xOffset * this.shadowOrthoScale,
+                                     orthoBottom - yOffset * this.shadowOrthoScale, orthoTop + yOffset * this.shadowOrthoScale,
+                                     -activeCamera.maxZ, activeCamera.maxZ, matrix);
 	}
 
 	public function supportsVSM():Bool {

@@ -2,7 +2,9 @@ package com.babylonhx.postprocess;
 
 import com.babylonhx.cameras.Camera;
 import com.babylonhx.materials.Effect;
+import com.babylonhx.materials.textures.DynamicTexture;
 import com.babylonhx.materials.textures.Texture;
+import com.babylonhx.math.Vector2;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.postprocess.renderpipeline.PostProcessRenderEffect;
 import com.babylonhx.postprocess.renderpipeline.PostProcessRenderPipeline;
@@ -42,6 +44,33 @@ import com.babylonhx.materials.textures.RenderTargetTexture;
 	* @type {string}
 	*/
 	public var SSAOCombineRenderEffect:String = "SSAOCombineRenderEffect";
+	
+	/**
+    The output strength of the SSAO post-process. Default value is 1.0.
+    @type {number}
+    */
+    public var totalStrength:Float = 1.0;
+
+    /**
+    The radius around the analyzed pixel used by the SSAO post-process. Default value is 0.0002
+    */
+    public var radius:Float = 0.0002;
+	
+	/**
+	* Related to fallOff, used to interpolate SSAO samples (first interpolate function input) based on the occlusion difference of each pixel
+	* Must not be equal to fallOff and superior to fallOff.
+	* Default value is 0.0075
+	* @type {number}
+	*/
+	public var area:Float = 0.0075;
+
+	/**
+	* Related to area, used to interpolate SSAO samples (second interpolate function input) based on the occlusion difference of each pixel
+	* Must not be equal to area and inferior to area.
+	* Default value is 0.0003
+	* @type {number}
+	*/
+	public var fallOff:Float = 0.0003;
 
 	private var _scene:Scene = null;
 	private var _depthTexture:RenderTargetTexture = null;
@@ -60,10 +89,10 @@ import com.babylonhx.materials.textures.RenderTargetTexture;
 	 * @constructor
 	 * @param {string} name - The rendering pipeline name
 	 * @param {BABYLON.Scene} scene - The scene linked to this pipeline
-	 * @param {number} ratio - The size of the postprocesses (0.5 means that your postprocess will have a width = canvas.width 0.5 and a height = canvas.height 0.5)
+	 * @param {number} ratio - The size of the postprocesses Can be a number shared between passes or an object for more precision: { ssaoRatio: 0.5, combineRatio: 1.0 }
 	 * @param {BABYLON.Camera[]} cameras - The array of cameras that the rendering pipeline will be attached to
 	 */
-	public function new(name:String, scene:Scene, ratio:Float = 1.0, ?cameras:Array<Camera>) {
+	public function new(name:String, scene:Scene, ratio:Dynamic, ?cameras:Array<Camera>) {
 		super(scene.getEngine(), name);
 		
 		this._scene = scene;
@@ -72,10 +101,13 @@ import com.babylonhx.materials.textures.RenderTargetTexture;
 		this._createRandomTexture();
 		this._depthTexture = scene.enableDepthRenderer().getDepthMap(); // Force depth renderer "on"
 		
+		var ssaoRatio = Reflect.hasField(ratio, "ssaoRatio") ? ratio.ssaoRatio : ratio;
+		var combineRatio = Reflect.hasField(ratio, "combineRatio") ? ratio.combineRatio : ratio;
+		
 		this._originalColorPostProcess = new PassPostProcess("SSAOOriginalSceneColor", 1.0, null, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
 		this._createSSAOPostProcess(ratio);
-		this._blurHPostProcess = new BlurPostProcess("SSAOBlur", new Vector2(1.0, 0.0), 1.0, ratio, null, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
-		this._blurVPostProcess = new BlurPostProcess("SSAOBlur", new Vector2(0.0, 1.0), 1.0, ratio, null, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
+		this._blurHPostProcess = new BlurPostProcess("SSAOBlurH", new Vector2(1.0, 0.0), 2.0, ssaoRatio, null, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
+		this._blurVPostProcess = new BlurPostProcess("SSAOBlurV", new Vector2(0.0, 1.0), 2.0, ssaoRatio, null, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
 		this._createSSAOCombinePostProcess();
 		
 		// Set up pipeline
@@ -151,18 +183,23 @@ import com.babylonhx.materials.textures.RenderTargetTexture;
 		
 		var samplesFactor = 1.0 / 16.0;
 		
-		this._ssaoPostProcess = new PostProcess("ssao", "ssao", ["sampleSphere", "samplesFactor", "randTextureTiles"], 
+		this._ssaoPostProcess = new PostProcess("ssao", "ssao", ["sampleSphere", "samplesFactor", "randTextureTiles", "totalStrength", "radius",  "area", "fallOff"], 
 												["randomSampler"],
 												ratio, null, Texture.BILINEAR_SAMPLINGMODE,
 												this._scene.getEngine(), false);
 												
 		this._ssaoPostProcess.onApply = function(effect:Effect) {
-			if (this._firstUpdate === true) {
+			if (this._firstUpdate == true) {
 				effect.setArray3("sampleSphere", sampleSphere);
 				effect.setFloat("samplesFactor", samplesFactor);
 				effect.setFloat("randTextureTiles", 4.0 / ratio);
 				this._firstUpdate = false;
 			}
+			
+			effect.setFloat("totalStrength", this.totalStrength);
+			effect.setFloat("radius", this.radius);
+			effect.setFloat("area", this.area);
+            effect.setFloat("fallOff", this.fallOff);
 			
 			effect.setTexture("textureSampler", this._depthTexture);
 			effect.setTexture("randomSampler", this._randomTexture);
@@ -197,13 +234,13 @@ import com.babylonhx.materials.textures.RenderTargetTexture;
 			return Math.random() * (max - min) + min;
 		}
 		
-		for (x in 0...size+) {
+		for (x in 0...size) {
 			for (y in 0...size) {
 				var randVector = Vector3.Zero();
 				
-				randVector.x = Math.floor(rand(0.0, 1.0) * 255);
-				randVector.y = Math.floor(rand(0.0, 1.0) * 255);
-				randVector.z = Math.floor(rand(0.0, 1.0) * 255);
+				randVector.x = randVector.y = randVector.z = Math.floor(rand(0.0, 1.0) * 255);
+                //randVector.y = Math.floor(rand(0.0, 1.0) * 255);
+                //randVector.z = Math.floor(rand(0.0, 1.0) * 255);
 				
 				context.fillStyle = 'rgb(' + randVector.x + ', ' + randVector.y + ', ' + randVector.z + ')';
 				context.fillRect(x, y, 1, 1);

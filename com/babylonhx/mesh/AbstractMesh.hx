@@ -131,7 +131,7 @@ import com.babylonhx.physics.PhysicsBodyCreationOptions;
 	public var useOctreeForPicking:Bool = true;
 	public var useOctreeForCollisions:Bool = true;
 
-	public var layerMask:Int = 0xFFFFFFFF;
+	public var layerMask:Int = 0x0FFFFFFF;
 
 	// Physics
 	public var _physicImpostor:Int = PhysicsEngine.NoImpostor;

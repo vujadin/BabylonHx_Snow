@@ -117,7 +117,6 @@ import snow.assets.AssetText;
 			var pdm:Array<Dynamic> = cast parsedData.meshes;
             for (index in 0...pdm.length) {
                 var parsedMesh = pdm[index];
-				
                 if (meshesNames == null || meshesNames == "" || isDescendantOf(parsedMesh, meshesNames, hierarchyIds)) {
 					if (Std.is(meshesNames, Array)) {
                         // Remove found mesh name from list.
@@ -1432,7 +1431,10 @@ import snow.assets.AssetText;
             var trigger = parsedActions.children[i];
 			
             if (trigger.properties.length > 0) {
-                triggerParams = { trigger: Reflect.field(ActionManager, trigger.name), parameter: scene.getMeshByName(cast(trigger.properties, Array<Dynamic>)[0].value) };
+                //triggerParams = { trigger: Reflect.field(ActionManager, trigger.name), parameter: scene.getMeshByName(cast(trigger.properties, Array<Dynamic>)[0].value) };
+				var param:Dynamic = cast(trigger.properties, Array<Dynamic>)[0].value;
+				var value = cast(trigger.properties, Array<Dynamic>)[0].targetType == null ? param : scene.getMeshByName(cast param);
+				triggerParams = { trigger: Reflect.field(ActionManager, trigger.name), parameter: value };
             }
             else {
                 triggerParams = Reflect.field(ActionManager, trigger.name);

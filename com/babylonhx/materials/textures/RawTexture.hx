@@ -1,14 +1,7 @@
 package com.babylonhx.materials.textures;
 
-#if nme
-import nme.utils.ArrayBufferView;
-#elseif openfl
-import openfl.utils.ArrayBufferView;
-#elseif snow
 import snow.utils.ArrayBufferView;
-#elseif kha
 
-#end
 
 /**
  * ...
@@ -19,9 +12,9 @@ import snow.utils.ArrayBufferView;
 	
 	public function new(data:ArrayBufferView, width:Float, height:Float, format:Int, scene:Scene, generateMipMaps:Bool = true, invertY:Bool = false, samplingMode:Int = Texture.TRILINEAR_SAMPLINGMODE) {
 		super(null, scene, !generateMipMaps, invertY);
-
+		
 		this._texture = scene.getEngine().createRawTexture(data, width, height, format, generateMipMaps, invertY, samplingMode);
-
+		
 		this.wrapU = Texture.CLAMP_ADDRESSMODE;
 		this.wrapV = Texture.CLAMP_ADDRESSMODE;
 	}

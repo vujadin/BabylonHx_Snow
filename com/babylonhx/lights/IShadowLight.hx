@@ -13,8 +13,8 @@ import com.babylonhx.mesh.AbstractMesh;
 @:expose('BABYLON.IShadowLight') interface IShadowLight {
   
 	var position:Vector3;
-	var direction: Vector3;
-	var transformedPosition: Vector3;
+	var direction:Vector3;
+	var transformedPosition:Vector3;
 	var name:String;
 
 	function computeTransformedPosition():Bool;
@@ -22,7 +22,6 @@ import com.babylonhx.mesh.AbstractMesh;
 	
 	function setShadowProjectionMatrix(matrix:Matrix, viewMatrix:Matrix, renderList:Array<AbstractMesh>, useVSM:Bool):Void;
 	
-	function getVSMOffset():Float;
 	function supportsVSM():Bool;
 	function needRefreshPerFrame():Bool;
 

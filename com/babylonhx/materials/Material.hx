@@ -42,6 +42,7 @@ import com.babylonhx.mesh.Mesh;
 	private var _fillMode:Int = Material.TriangleFillMode;
 
 	public var pointSize:Float = 1.0;
+	public var zOffset:Float = 0.0;
 
 	public var wireframe(get, set):Bool;
 	private function get_wireframe():Bool {
@@ -113,7 +114,7 @@ import com.babylonhx.mesh.Mesh;
 		var engine = this._scene.getEngine();
 		
 		engine.enableEffect(this._effect);
-		engine.setState(this.backFaceCulling);
+		engine.setState(this.backFaceCulling, cast this.zOffset);
 	}
 
 	public function bind(world:Matrix, ?mesh:Mesh) {

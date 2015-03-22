@@ -209,11 +209,11 @@ import haxe.Timer;
 	private var _onBeforeRenderCallbacks:Array<Void->Void> = [];
 	private var _onAfterRenderCallbacks:Array<Void->Void> = [];
 
-	private var _activeMeshes:SmartArray = new SmartArray(256);// SmartArray<Mesh> = new SmartArray<Mesh>(256);
-	private var _processedMaterials:SmartArray = new SmartArray(256);// SmartArray<Material> = new SmartArray<Material>(256);
-	private var _renderTargets:SmartArray = new SmartArray(256);// SmartArray<RenderTargetTexture> = new SmartArray<RenderTargetTexture>(256);
-	public var _activeParticleSystems:SmartArray = new SmartArray(256);// SmartArray<ParticleSystem> = new SmartArray<ParticleSystem>(256);
-	private var _activeSkeletons:SmartArray = new SmartArray(256);// SmartArray<Skeleton> = new SmartArray<Skeleton>(32);
+	private var _activeMeshes:SmartArray = new SmartArray(256);				// new SmartArray<Mesh>(256);
+	private var _processedMaterials:SmartArray = new SmartArray(256);		// new SmartArray<Material>(256);
+	private var _renderTargets:SmartArray = new SmartArray(256);			// new SmartArray<RenderTargetTexture>(256);
+	public var _activeParticleSystems:SmartArray = new SmartArray(256);		// new SmartArray<ParticleSystem>(256);
+	private var _activeSkeletons:SmartArray = new SmartArray(256);			// new SmartArray<Skeleton>(32);
 	private var _activeBones:Int = 0;
 
 	private var _renderingManager:RenderingManager;
@@ -440,25 +440,19 @@ import haxe.Timer;
 			}
 		};
 		
-		/*var eventPrefix = Tools.GetPointerPrefix();
-		this._engine.getRenderingCanvas().addEventListener(eventPrefix + "move", this._onPointerMove, false);
-		this._engine.getRenderingCanvas().addEventListener(eventPrefix + "down", this._onPointerDown, false);*/
-		Main.mouseDown.push(this._onPointerDown);
-		Main.mouseMove.push(this._onPointerMove);
-		
-		//window.addEventListener("keydown", this._onKeyDown, false);
-		//window.addEventListener("keyup", this._onKeyUp, false);		
-		Main.keyDown.push(this._onKeyDown);
-		Main.keyUp.push(this._onKeyUp);
+		Engine.mouseDown.push(this._onPointerDown);
+		Engine.mouseMove.push(this._onPointerMove);
+				
+		Engine.keyDown.push(this._onKeyDown);
+		Engine.keyUp.push(this._onKeyUp);
 	}
 
 	public function detachControl() {
-		/*var eventPrefix = Tools.GetPointerPrefix();
-		this._engine.getRenderingCanvas().removeEventListener(eventPrefix + "move", this._onPointerMove);
-		this._engine.getRenderingCanvas().removeEventListener(eventPrefix + "down", this._onPointerDown);
-
-		window.removeEventListener("keydown", this._onKeyDown);
-		window.removeEventListener("keyup", this._onKeyUp);*/
+		Engine.mouseDown.remove(this._onPointerDown);
+		Engine.mouseMove.remove(this._onPointerMove);
+				
+		Engine.keyDown.remove(this._onKeyDown);
+		Engine.keyUp.remove(this._onKeyUp);
 	}
 
 	// Ready
@@ -613,13 +607,11 @@ import haxe.Timer;
 		var now = Tools.Now();
 		var delay = now - this._animationStartDate;
 		
-		var index:Int = 0;
-		while(index < this._activeAnimatables.length) {
-			if (!this._activeAnimatables[index]._animate(delay)) {
-				this._activeAnimatables.splice(index, 1);
-				--index;
+		for (index in 0...this._activeAnimatables.length) {
+			// TODO: inspect this, last item in array is null sometimes
+			if(this._activeAnimatables[index] != null) {
+				this._activeAnimatables[index]._animate(delay);
 			}
-			++index;
 		}
 	}
 
@@ -1111,7 +1103,8 @@ import haxe.Timer;
 				var renderTarget = this._renderTargets.data[renderIndex];
 				if (renderTarget._shouldRender()) {
 					this._renderId++;
-					renderTarget.render(false);
+					var hasSpecialRenderTargetCamera = renderTarget.activeCamera != null && renderTarget.activeCamera != this.activeCamera;
+					renderTarget.render(hasSpecialRenderTargetCamera, this.dumpNextRenderTargets);
 				}
 			}
 			//Tools.EndPerformanceCounter("Render targets", this._renderTargets.length > 0);
@@ -1307,7 +1300,7 @@ import haxe.Timer;
 					// Camera
 					this.updateTransformMatrix();
 					
-					renderTarget.render(false);
+					renderTarget.render(currentActiveCamera != this.activeCamera);
 				}
 			}
 			//Tools.EndPerformanceCounter("Custom render targets", this.customRenderTargets.length > 0);

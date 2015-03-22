@@ -17,8 +17,7 @@ import snow.utils.Float32Array;
 	public static var UV2Kind:String = "uv2";
 	public static var ColorKind:String = "color";
 	public static var MatricesIndicesKind:String = "matricesIndices";
-	public static var MatricesWeightsKind:String = "matricesWeights";
-	
+	public static var MatricesWeightsKind:String = "matricesWeights";	
 	
 	private var _mesh:Mesh;
 	private var _engine:Engine;
@@ -29,6 +28,8 @@ import snow.utils.Float32Array;
 	private var _strideSize:Int;
 
 	public static var count:Int = 0;
+	
+	
 	public function new(engine:Engine, data:Array<Float>, kind:String, updatable:Bool, postponeInternalCreation:Bool = false, ?stride:Int) {
 		this._engine = engine;
 		this._updatable = updatable;

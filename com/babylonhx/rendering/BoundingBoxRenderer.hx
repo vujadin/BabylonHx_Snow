@@ -28,14 +28,19 @@ import com.babylonhx.culling.BoundingBox;
 	
 
 	public function new(scene:Scene) {
-		this._scene = scene;
-		this._colorShader = new ShaderMaterial("colorShader", scene, "color",
-			{
-				attributes:["position"],
-				uniforms:["worldViewProjection", "color"]
-			});
-
-
+		this._scene = scene;		
+	}
+	
+	private function _prepareRessources() {
+		if (this._colorShader != null) {
+			return;
+		}
+		
+		this._colorShader = new ShaderMaterial("colorShader", this._scene, "color", {
+			attributes:["position"],
+			uniforms:["worldViewProjection", "color"]
+		});
+			
 		var engine = this._scene.getEngine();
 		var boxdata = VertexData.CreateBox(1.0);
 		this._vb = new VertexBuffer(engine, boxdata.positions, VertexBuffer.PositionKind, false);
@@ -48,6 +53,12 @@ import com.babylonhx.culling.BoundingBox;
 
 	public function render() {
 		if (this.renderList.length == 0 || !this._colorShader.isReady()) {
+			return;
+		}
+		
+		this._prepareRessources();
+		
+		if (!this._colorShader.isReady()) {
 			return;
 		}
 		
@@ -95,6 +106,9 @@ import com.babylonhx.culling.BoundingBox;
 	}
 
 	public function dispose() {
+		if (this._colorShader == null) {
+			return;
+		}
 		this._colorShader.dispose();
 		this._vb.dispose();
 		this._scene.getEngine()._releaseBuffer(this._ib);

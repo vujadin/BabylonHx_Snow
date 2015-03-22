@@ -19,6 +19,12 @@ import com.babylonhx.materials.textures.BabylonTexture;
 
 	public function new(scene:Scene) {
 		this._scene = scene;
+	}
+	
+	private function _prepareBuffers() {
+		if (this._vertexBuffer != null) {
+			return;
+		}
 		
 		// VBO
 		var vertices:Array<Float> = [];
@@ -30,7 +36,7 @@ import com.babylonhx.materials.textures.BabylonTexture;
 		vertices.push(-1);
 		vertices.push(1);
 		vertices.push(-1);
-		this._vertexBuffer = scene.getEngine().createVertexBuffer(vertices);
+		this._vertexBuffer = this._scene.getEngine().createVertexBuffer(vertices);
 		
 		// Indices
 		var indices:Array<Int> = [];
@@ -42,7 +48,7 @@ import com.babylonhx.materials.textures.BabylonTexture;
 		indices.push(2);
 		indices.push(3);
 		
-		this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
+		this._indexBuffer = this._scene.getEngine().createIndexBuffer(indices);
 	}
 
 	// Methods
@@ -82,6 +88,7 @@ import com.babylonhx.materials.textures.BabylonTexture;
 				}
 				
 				// VBOs
+				this._prepareBuffers();
 				engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
 				
 				// Draw order
@@ -130,6 +137,7 @@ import com.babylonhx.materials.textures.BabylonTexture;
 				}
 				
 				// VBOs
+				this._prepareBuffers();
 				engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
 				
 				// Draw order

@@ -4,6 +4,7 @@ import com.babylonhx.cameras.ArcRotateCamera;
 import com.babylonhx.lights.DirectionalLight;
 import com.babylonhx.lights.shadows.ShadowGenerator;
 import com.babylonhx.loading.plugins.BabylonFileLoader;
+import com.babylonhx.loading.plugins.BabylonLiteFileLoader;
 import com.babylonhx.loading.SceneLoader;
 import com.babylonhx.materials.StandardMaterial;
 import com.babylonhx.materials.textures.Texture;
@@ -42,12 +43,12 @@ class Bones {
 		// Shadows
 		var shadowGenerator = new ShadowGenerator(256, light);
 		
-		SceneLoader.RegisterPlugin(BabylonFileLoader.plugin);
+		SceneLoader.RegisterPlugin(BabylonLiteFileLoader.plugin);
 		
 		// Meshes
-		SceneLoader.ImportMesh("Rabbit", "assets/models/Rabbit/", "Rabbit.babylon", scene, function(newMeshes, particleSystems, skeletons) {
+		SceneLoader.ImportMesh("Rabbit", "assets/models/Rabbit/", "Rabbit_lite.babylon", scene, function(newMeshes, particleSystems, skeletons) {
 			var rabbit = newMeshes[1];
-			
+						
 			rabbit.scaling = new Vector3(0.4, 0.4, 0.4);			
 			
 			var rabbit2 = rabbit.clone("rabbit2");
@@ -68,7 +69,7 @@ class Bones {
 			shadowGenerator.getShadowMap().renderList.push(rabbit3);
 			
 			// Dude
-			SceneLoader.ImportMesh("him", "assets/models/Dude/", "Dude.babylon", scene, function (newMeshes2, particleSystems2, skeletons2) {
+			SceneLoader.ImportMesh("him", "assets/models/Dude/", "Dude_lite.babylon", scene, function (newMeshes2, particleSystems2, skeletons2) {
 				var dude = newMeshes2[0];
 				
 				for (index in 0...newMeshes2.length) {

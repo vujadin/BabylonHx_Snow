@@ -86,7 +86,7 @@ import snow.input.Keycodes;
 		this.alpha = alpha;
 		this.beta = beta;
 		this.radius = radius;
-		this.target = target;
+		this.target = target != null ? target : Vector3.Zero();
 		
 		this.getViewMatrix();
 	}
@@ -223,12 +223,12 @@ import snow.input.Keycodes;
 			
 		}
 		
-		Main.keyDown.push(_onKeyDown);
-		Main.keyUp.push(_onKeyUp);
-		Main.mouseDown.push(_onMouseDown);
-		Main.mouseUp.push(_onMouseUp);
-		Main.mouseMove.push(_onMouseMove);
-		Main.mouseWheel.push(_wheel);	
+		Engine.keyDown.push(_onKeyDown);
+		Engine.keyUp.push(_onKeyUp);
+		Engine.mouseDown.push(_onMouseDown);
+		Engine.mouseUp.push(_onMouseUp);
+		Engine.mouseMove.push(_onMouseMove);
+		Engine.mouseWheel.push(_wheel);	
 	}
 
 	override public function detachControl(?element:Dynamic) {
@@ -236,12 +236,12 @@ import snow.input.Keycodes;
 			return;
 		}
 		
-		Main.keyDown.remove(_onKeyDown);
-		Main.keyUp.remove(_onKeyUp);
-		Main.mouseDown.remove(_onMouseDown);
-		Main.mouseUp.remove(_onMouseUp);
-		Main.mouseMove.remove(_onMouseMove);
-		Main.mouseWheel.remove(_wheel);
+		Engine.keyDown.remove(_onKeyDown);
+		Engine.keyUp.remove(_onKeyUp);
+		Engine.mouseDown.remove(_onMouseDown);
+		Engine.mouseUp.remove(_onMouseUp);
+		Engine.mouseMove.remove(_onMouseMove);
+		Engine.mouseWheel.remove(_wheel);
 				
 		this._attachedElement = null;
 		

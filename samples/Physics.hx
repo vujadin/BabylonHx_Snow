@@ -5,6 +5,7 @@ import com.babylonhx.lights.HemisphericLight;
 import com.babylonhx.materials.ShaderMaterial;
 import com.babylonhx.materials.ShadersStore;
 import com.babylonhx.materials.StandardMaterial;
+import com.babylonhx.materials.textures.CubeTexture;
 import com.babylonhx.materials.textures.Texture;
 import com.babylonhx.math.Color3;
 import com.babylonhx.math.Vector3;
@@ -23,41 +24,38 @@ class Physics {
 	public function new(scene:Scene) {
 		scene.enablePhysics(new Vector3(0, -10, 0), new OimoPlugin());
 		
-		ShadersStore.Shaders.set("skysphere.vertex", "precision mediump float;\n attribute vec3 position;\n attribute vec3 normal;\n attribute vec2 uv;\n uniform mat4 worldViewProjection;\n varying vec4 vPosition;\n varying vec3 vNormal;\n void main() {\n vec4 p = vec4( position, 1. );\n   vPosition = p;\n vNormal = normal;\n gl_Position = worldViewProjection * p;\n }");
-		ShadersStore.Shaders.set("skysphere.fragment", "precision mediump float;\n uniform mat4 worldView;\n varying vec4 vPosition;\n varying vec3 vNormal;\n uniform float offset;\n uniform float exponent;\n uniform vec3 topColor;\n uniform vec3 bottomColor;\n void main(void) {\n float h = normalize(vPosition + offset).y;\n gl_FragColor = vec4( mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0 );\n }");
-		
-		var shader = new ShaderMaterial("gradient", scene, "skysphere", { });
-		shader.setFloat("offset", 0);
-		shader.setFloat("exponent", 0.6);
-		shader.setColor3("topColor", Color3.FromInts(0, 119, 255));
-		shader.setColor3("bottomColor", Color3.FromInts(240, 240, 255));
-		shader.backFaceCulling = false;
-		
-		/** SKYBOX **/
-		var skybox = Mesh.CreateSphere("skyBox", 10, 2500, scene);
-		skybox.material = shader;
+		// Skybox
+		/*var skybox = Mesh.CreateBox("skyBox", 10000.0, scene);
+		var skyboxMaterial = new StandardMaterial("skyBox", scene);
+		skyboxMaterial.backFaceCulling = false;
+		skyboxMaterial.reflectionTexture = new CubeTexture("assets/img/skybox/skybox", scene);
+		skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+		skyboxMaterial.diffuseColor = new Color3(0, 0, 0);
+		skyboxMaterial.specularColor = new Color3(0, 0, 0);
+		skybox.material = skyboxMaterial;
+		skybox.infiniteDistance = true;*/
 		
 		/** CAMERA **/
 		var camera = new ArcRotateCamera("Camera", 0.86, 1.37, 250, Vector3.Zero(), scene);
 		camera.attachControl(this);
-		camera.maxZ = 5000;
-		camera.lowerRadiusLimit = 120;
+		camera.maxZ = 50000;
+		/*camera.lowerRadiusLimit = 120;
 		camera.upperRadiusLimit = 430;
 		camera.lowerBetaLimit = 0.75;
-		camera.upperBetaLimit = 1.58;
+		camera.upperBetaLimit = 1.58;*/
 		
 		/** SUN LIGHT **/
 		new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
 		
 		/** GROUND **/
 		var mat = new StandardMaterial("ground", scene);
-		var texDiff = new Texture("img/bricks.jpg", scene);
-		texDiff.uScale = texDiff.vScale = 15;
-		mat.diffuseTexture = texDiff;
+		//var texDiff = new Texture("assets/img/dirt.jpg", scene);
+		//texDiff.uScale = texDiff.vScale = 15;
+		//mat.diffuseTexture = texDiff;
 		mat.specularColor = Color3.Black();
 		
 		var g = Mesh.CreateBox("ground", 400, scene);
-		g.position.y = -20;
+		g.position.y = -30;
 		g.scaling.y = 0.01;
 		g.material = mat;
 		var physOpt = new PhysicsBodyCreationOptions();
@@ -80,7 +78,7 @@ class Physics {
 		var objects:Array<Mesh> = [];
 		
 		// max number of objects
-		var max = 150;
+		var max = 100;
 		
 		// Creates a random position above the ground
 		var getPosition = function(y:Float):Vector3 {
@@ -95,7 +93,7 @@ class Physics {
 			s.position = getPosition(y);
 			var matSphere = new StandardMaterial("boxmat", scene);
 			matSphere.diffuseColor = Color3.FromInts(175, 71, 89);
-			//matSphere.specularColor = Color3.Yellow();
+			matSphere.specularColor = Color3.Yellow();
 			s.material = matSphere;
 			physOpt = new PhysicsBodyCreationOptions();
 			physOpt.mass = 1;
@@ -106,6 +104,7 @@ class Physics {
 			// BOXES
 			var d = Mesh.CreateBox("s", randomNumber(10, 20), scene);
 			d.position = getPosition(y);
+			d.material = matSphere;
 			/*var shaderBox = new ShaderMaterial("gradient", scene, {
 				vertexElement: ShadersStore.Shaders.get("skysphere.vertex"),
 				fragmentElement: ShadersStore.Shaders.get("skysphere.fragment")
@@ -129,15 +128,15 @@ class Physics {
 			y += 10;
 		}
 		
-		/*scene.registerBeforeRender(function() {
+		scene.registerBeforeRender(function() {
 			for(obj in objects) {
 				// If object falls
 				if (obj.position.y < -100) {
 					obj.position = getPosition(200);
-	                obj.updateBodyPosition();
+	                //obj.updateBodyPosition();
 				}
 			}
-		});*/
+		});
 		
 		scene.getEngine().runRenderLoop(function () {
             scene.render();

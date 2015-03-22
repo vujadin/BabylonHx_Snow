@@ -101,7 +101,7 @@ import com.babylonhx.tools.Tools;
 	override public function isReady(?mesh:AbstractMesh, useInstances:Bool = false):Bool {
 		if (this.checkReadyOnlyOnce) {
 			if (this._wasPreviouslyReady) {
-				return true;
+				//return true;
 			}
 		}
 		
@@ -109,7 +109,7 @@ import com.babylonhx.tools.Tools;
 		
 		if (!this.checkReadyOnEveryCall) {
 			if (this._renderId == scene.getRenderId()) {
-				return true;
+				//return true;
 			}
 		}
 		
@@ -605,7 +605,7 @@ import com.babylonhx.tools.Tools;
 					if (mesh.receiveShadows && shadowGenerator != null) {
 						this._effect.setMatrix("lightMatrix" + lightIndex, shadowGenerator.getTransformMatrix());
                             this._effect.setTexture("shadowSampler" + lightIndex, shadowGenerator.getShadowMapForRendering());
-                            this._effect.setFloat4("shadowsInfo" + lightIndex, shadowGenerator.getDarkness(), shadowGenerator.getShadowMap().getSize().width, shadowGenerator.bias, shadowGenerator.getLight().getVSMOffset());
+                            this._effect.setFloat3("shadowsInfo" + lightIndex, shadowGenerator.getDarkness(), shadowGenerator.getShadowMap().getSize().width, shadowGenerator.bias);
 					}
 				}
 				

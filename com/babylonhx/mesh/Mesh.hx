@@ -8,6 +8,7 @@ import com.babylonhx.materials.Effect;
 import com.babylonhx.math.Matrix;
 import com.babylonhx.math.Path3D;
 import com.babylonhx.math.Plane;
+import com.babylonhx.math.PositionNormalVertex;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.math.Vector2;
 import com.babylonhx.mesh.simplification.ISimplificationSettings;
@@ -24,9 +25,10 @@ import com.babylonhx.tools.AsyncLoop;
 import com.babylonhx.tools.Tools;
 import com.babylonhx.materials.Material;
 import com.babylonhx.materials.textures.Texture;
-import haxe.Json;
-import snow.assets.AssetImage;
 
+import haxe.Json;
+
+import snow.assets.AssetImage;
 import snow.utils.Float32Array;
 import snow.utils.UInt8Array;
 import snow.utils.UInt8Array;
@@ -52,6 +54,7 @@ import snow.utils.ByteArray;
 	public var delayLoadingFile:String;
 	public var _binaryInfo:Dynamic;
 	private var _LODLevels:Array<MeshLODLevel> = [];
+	public var onLODLevelSelection:Float->Mesh->Mesh->Void;
 
 	// Private
 	public var _geometry:Geometry;
@@ -277,6 +280,9 @@ import snow.utils.ByteArray;
 		var distanceToCamera = (boundingSphere != null ? boundingSphere : this.getBoundingInfo().boundingSphere).centerWorld.subtract(camera.position).length();
 		
 		if (this._LODLevels[this._LODLevels.length - 1].distance > distanceToCamera) {
+			if (this.onLODLevelSelection != null) {
+                this.onLODLevelSelection(distanceToCamera, this, this._LODLevels[this._LODLevels.length - 1].mesh);
+            }
 			return this;
 		}
 		
@@ -288,10 +294,17 @@ import snow.utils.ByteArray;
 					level.mesh._preActivate();
                     level.mesh._updateSubMeshesBoundingInfo(this.worldMatrixFromCache);
 				}
+				
+				if (this.onLODLevelSelection != null) {
+                    this.onLODLevelSelection(distanceToCamera, this, level.mesh);
+                }
 				return level.mesh;
 			}
 		}
 		
+		if (this.onLODLevelSelection != null) {
+            this.onLODLevelSelection(distanceToCamera, this, this);
+        }
 		return this;
 	}
 
@@ -1395,6 +1408,223 @@ import snow.utils.ByteArray;
 		
 		return tube;
 	}
+	
+	// Decals
+    public static function CreateDecal(name:String, sourceMesh:AbstractMesh, position:Vector3, normal:Vector3, size:Vector3, angle:Float = 0) {
+        var indices:Array<Int> = sourceMesh.getIndices();
+        var positions:Array<Float> = sourceMesh.getVerticesData(VertexBuffer.PositionKind);
+        var normals:Array<Float> = sourceMesh.getVerticesData(VertexBuffer.NormalKind);
+		
+        // Getting correct rotation
+        if (normal == null) {
+            var target:Vector3 = new Vector3(0, 0, 1);
+            var camera:Camera = sourceMesh.getScene().activeCamera;
+            var cameraWorldTarget:Vector3 = Vector3.TransformCoordinates(target, camera.getWorldMatrix());
+			
+            normal = camera.globalPosition.subtract(cameraWorldTarget);
+        }
+		
+        var yaw:Float = -Math.atan2(normal.z, normal.x) - Math.PI / 2;
+        var len:Float = Math.sqrt(normal.x * normal.x + normal.z * normal.z);
+        var pitch:Float = Math.atan2(normal.y, len);
+		
+        // Matrix
+        var decalWorldMatrix:Matrix = Matrix.RotationYawPitchRoll(yaw, pitch, angle).multiply(Matrix.Translation(position.x, position.y, position.z));
+        var inverseDecalWorldMatrix:Matrix = Matrix.Invert(decalWorldMatrix);
+        var meshWorldMatrix:Matrix = sourceMesh.getWorldMatrix();
+        var transformMatrix:Matrix = meshWorldMatrix.multiply(inverseDecalWorldMatrix);
+		
+        var vertexData:VertexData = new VertexData();
+        vertexData.indices = [];
+        vertexData.positions = [];
+        vertexData.normals = [];
+        vertexData.uvs = [];
+		
+        var currentVertexDataIndex:Int = 0;
+		
+        var extractDecalVector3 = inline function(indexId:Int):PositionNormalVertex {
+            var vertexId = indices[indexId];
+            var result = new PositionNormalVertex();
+            result.position = new Vector3(positions[vertexId * 3], positions[vertexId * 3 + 1], positions[vertexId * 3 + 2]);
+			
+            // Send vector to decal local world
+            result.position = Vector3.TransformCoordinates(result.position, transformMatrix);
+			
+            // Get normal
+            result.normal = new Vector3(normals[vertexId * 3], normals[vertexId * 3 + 1], normals[vertexId * 3 + 2]);
+			
+            return result;
+        }
+        
+        // Inspired by https://github.com/mrdoob/three.js/blob/eee231960882f6f3b6113405f524956145148146/examples/js/geometries/DecalGeometry.js
+        var clip = function(vertices:Array<PositionNormalVertex>, axis:Vector3):Array<PositionNormalVertex> {
+            if (vertices.length == 0) {
+                return vertices;
+            }
+			
+            var clipSize = 0.5 * Math.abs(Vector3.Dot(size, axis));
+			
+            var clipVertices = inline function(v0:PositionNormalVertex, v1:PositionNormalVertex):PositionNormalVertex {
+                var clipFactor = Vector3.GetClipFactor(v0.position, v1.position, axis, clipSize);
+				
+                return new PositionNormalVertex(
+                    Vector3.Lerp(v0.position, v1.position, clipFactor),
+                    Vector3.Lerp(v0.normal, v1.normal, clipFactor)
+                );
+            }
+			
+            var result = new Array<PositionNormalVertex>();
+			
+			var v1Out:Bool = false;
+			var v2Out:Bool = false;
+			var v3Out:Bool = false;
+			var total = 0;
+			var nV1:PositionNormalVertex = null;
+			var nV2:PositionNormalVertex = null;
+			var nV3:PositionNormalVertex = null;
+			var nV4:PositionNormalVertex = null;
+			
+			var d1:Float = 0.0;
+			var d2:Float = 0.0;
+			var d3:Float = 0.0;
+			
+			var index = 0;
+			while(index < vertices.length) {				
+                d1 = Vector3.Dot(vertices[index].position, axis) - clipSize;
+                d2 = Vector3.Dot(vertices[index + 1].position, axis) - clipSize;
+                d3 = Vector3.Dot(vertices[index + 2].position, axis) - clipSize;
+				
+                v1Out = d1 > 0;
+                v2Out = d2 > 0;
+                v3Out = d3 > 0;
+				
+                total = (v1Out ? 1 : 0) + (v2Out ? 1 : 0) + (v3Out ? 1 : 0);
+                switch (total) {
+                    case 0:
+                        result.push(vertices[index]);
+                        result.push(vertices[index + 1]);
+                        result.push(vertices[index + 2]);
+                        
+                    case 1:
+                        if (v1Out) {
+                            nV1 = vertices[index + 1];
+                            nV2 = vertices[index + 2];
+                            nV3 = clipVertices(vertices[index], nV1);
+                            nV4 = clipVertices(vertices[index], nV2);
+                        }
+						
+                        if (v2Out) {
+                            nV1 = vertices[index];
+                            nV2 = vertices[index + 2];
+                            nV3 = clipVertices(vertices[index + 1], nV1);
+                            nV4 = clipVertices(vertices[index + 1], nV2);
+							
+                            result.push(nV3);
+                            result.push(nV2.clone());
+                            result.push(nV1.clone());
+							
+                            result.push(nV2.clone());
+                            result.push(nV3.clone());
+                            result.push(nV4);
+                            //break;
+                        } else {
+							if (v3Out) {
+								nV1 = vertices[index];
+								nV2 = vertices[index + 1];
+								nV3 = clipVertices(vertices[index + 2], nV1);
+								nV4 = clipVertices(vertices[index + 2], nV2);
+							}
+							
+							result.push(nV1.clone());
+							result.push(nV2.clone());
+							result.push(nV3);
+							
+							result.push(nV4);
+							result.push(nV3.clone());
+							result.push(nV2.clone());
+						}
+                        
+                    case 2:
+                        if (!v1Out) {
+                            nV1 = vertices[index].clone();
+                            nV2 = clipVertices(nV1, vertices[index + 1]);
+                            nV3 = clipVertices(nV1, vertices[index + 2]);
+                            result.push(nV1);
+                            result.push(nV2);
+                            result.push(nV3);
+                        }
+                        if (!v2Out) {
+                            nV1 = vertices[index + 1].clone();
+                            nV2 = clipVertices(nV1, vertices[index + 2]);
+                            nV3 = clipVertices(nV1, vertices[index]);
+                            result.push(nV1);
+                            result.push(nV2);
+                            result.push(nV3);
+                        }
+                        if (!v3Out) {
+                            nV1 = vertices[index + 2].clone();
+                            nV2 = clipVertices(nV1, vertices[index]);
+                            nV3 = clipVertices(nV1, vertices[index + 1]);
+                            result.push(nV1);
+                            result.push(nV2);
+                            result.push(nV3);
+                        }
+                        
+                    case 3:
+                        //
+                }
+				
+				index += 3;
+            }
+			
+            return result;
+        }
+		
+		var faceVertices:Array<PositionNormalVertex> = [];
+		var index = 0;
+		while(index < indices.length) {
+            faceVertices = [];
+			
+            faceVertices.push(extractDecalVector3(index));
+            faceVertices.push(extractDecalVector3(index + 1));
+            faceVertices.push(extractDecalVector3(index + 2));
+			
+            // Clip
+            faceVertices = clip(faceVertices, new Vector3(1, 0, 0));
+            faceVertices = clip(faceVertices, new Vector3(-1, 0, 0));
+            faceVertices = clip(faceVertices, new Vector3(0, 1, 0));
+            faceVertices = clip(faceVertices, new Vector3(0, -1, 0));
+            faceVertices = clip(faceVertices, new Vector3(0, 0, 1));
+            faceVertices = clip(faceVertices, new Vector3(0, 0, -1));
+			
+            if (faceVertices.length == 0) {
+				index += 3;
+                continue;
+            }
+              
+            // Add UVs and get back to world
+			var vertex:PositionNormalVertex = null;
+            for (vIndex in 0...faceVertices.length) {
+                vertex = faceVertices[vIndex];
+				
+                vertexData.indices.push(currentVertexDataIndex);
+                Vector3.TransformCoordinates(vertex.position, decalWorldMatrix).toArray(vertexData.positions, currentVertexDataIndex * 3);
+                vertex.normal.toArray(vertexData.normals, currentVertexDataIndex * 3);
+                vertexData.uvs.push(0.5 + vertex.position.x / size.x);
+                vertexData.uvs.push(0.5 + vertex.position.y / size.y);
+				
+                currentVertexDataIndex++;
+            }
+			
+			index += 3;
+        }
+		
+        // Return mesh
+        var decal = new Mesh(name, sourceMesh.getScene());
+        vertexData.applyToMesh(decal);
+		
+        return decal;
+    }
 
 	// Tools
 	public static function MinMax(meshes:Array<AbstractMesh>):BabylonMinMax {

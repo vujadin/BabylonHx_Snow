@@ -9,7 +9,6 @@ import com.babylonhx.math.Vector3;
 import com.babylonhx.mesh.Mesh;
 import com.babylonhx.mesh.SubMesh;
 import com.babylonhx.mesh.AbstractMesh;
-import haxe.format.JsonParser;
 import haxe.Json;
 import haxe.Timer;
 
@@ -121,39 +120,7 @@ import snow.assets.AssetImage;
 		return Std.is(obj, Array) ? obj : [obj];
 	}
 	
-	public static function LoadFile(url:String, ?callbackFn:Dynamic->Void, type:String = "") {
-		_loadFile(url, callbackFn, type);
-		/*if(type == "") {
-			if (SnowApp._snow.assets.exists(url)) {
-				if (StringTools.endsWith(url, "bbin")) {
-					SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null } );	
-				} 
-				else {
-					SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
-				}
-			} else {
-				trace("File '" + url + "' doesn't exist!");
-			}
-		} else {
-			if(SnowApp._snow.assets.exists(url)) {
-				switch(type) {
-					case "text":
-						SnowApp._snow.assets.text(url, { onload: callbackFn != null ? callbackFn : null } );
-						
-					case "bin":
-						SnowApp._snow.assets.bytes(url, { onload: callbackFn != null ? callbackFn : null });
-						
-					case "img":
-						SnowApp._snow.assets.image(url, { onload: callbackFn != null ? callbackFn : null });
-				}
-			} else {
-				trace("File '" + url + "' doesn't exist!");
-			}
-		}*/
-    }
-	
-	
-	private static function _loadFile(path:String, ?callbackFn:Dynamic->Void, type:String = "") {
+	public static function LoadFile(path:String, ?callbackFn:Dynamic->Void, type:String = "") {
 		#if js
 		var httpRequest = new XMLHttpRequest();
 		httpRequest.onreadystatechange = function(_) {
@@ -196,9 +163,8 @@ import snow.assets.AssetImage;
 			}
 		}
 		#end
-	}
+    }
 	
-
 	public static function LoadImage(url:String, onload:AssetImage-> Void, ?onerror:Void->Void, ?db:Dynamic) { 
 		if (SnowApp._snow.assets.exists(url)) {
 			#if !js

@@ -9,8 +9,7 @@ import com.babylonhx.math.Vector2;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.postprocess.PostProcess;
 import com.babylonhx.materials.textures.BaseTexture;
-import haxe.CallStack;
-import snow.assets.AssetText;
+
 
 import snow.App;
 import snow.render.opengl.GL;
@@ -18,6 +17,7 @@ import snow.render.opengl.GL.GLUniformLocation;
 import snow.render.opengl.GL.GLProgram;
 import snow.render.opengl.GL.GLTexture;
 import snow.utils.Float32Array;
+import snow.assets.AssetText;
 
 
 /**

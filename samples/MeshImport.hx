@@ -11,6 +11,7 @@ import com.babylonhx.particles.ParticleSystem;
 import com.babylonhx.loading.SceneLoader;
 import com.babylonhx.cameras.ArcRotateCamera;
 import com.babylonhx.loading.plugins.BabylonFileLoader;
+import com.babylonhx.loading.plugins.BabylonLiteFileLoader;
 
 
 /**
@@ -34,13 +35,17 @@ class MeshImport {
 		lines.alpha = 0.01;
 		lines.parent = camera;
 		
-		SceneLoader.RegisterPlugin(BabylonFileLoader.plugin);
-		
-		// The first parameter can be used to specify which mesh to import. Here we import all meshes
-		SceneLoader.ImportMesh("", "assets/models/", "dagger.babylon", scene, function (newMeshes:Array<AbstractMesh>, newParticles:Array<ParticleSystem>, newSkeletons:Array<Skeleton>) {
-			// Set the target of the camera to the first imported mesh
-			camera.target = newMeshes[0];
+		SceneLoader.RegisterPlugin(BabylonFileLoader.plugin);		
+		SceneLoader.ImportMesh("", "assets/models/", "skull.babylon", scene, function (newMeshes:Array<AbstractMesh>, newParticles:Array<ParticleSystem>, newSkeletons:Array<Skeleton>) {
+			newMeshes[0].position.x -= 20;
 		});
+		
+		/*SceneLoader.RegisterPlugin(BabylonFileLoader.plugin);		
+		SceneLoader.ImportMesh("", "assets/models/", "skull.babylon", scene, function (newMeshes:Array<AbstractMesh>, newParticles:Array<ParticleSystem>, newSkeletons:Array<Skeleton>) {
+			newMeshes[0].position.x += 20;
+			camera.target = newMeshes[0];
+			camera.target.position.x -= 20;
+		});*/
 		
 		// Move the light with the camera
 		scene.registerBeforeRender(function () {
