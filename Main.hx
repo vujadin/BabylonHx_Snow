@@ -2,11 +2,6 @@ package;
 
 import snow.Log.log;
 import snow.types.Types;
-import snow.utils.ByteArray;
-#if cpp
-import sys.io.File;
-import sys.io.FileOutput;
-#end
 
 import com.babylonhx.Engine;
 import com.babylonhx.Scene;
@@ -18,18 +13,7 @@ class Main extends snow.App {
 	var engine:Engine;
 	var scene:Scene;
 	
-	// quick and dirty solution to handle mouse/keyboard 
-	public static var mouseDown:Array<Dynamic> = [];
-	public static var mouseUp:Array<Dynamic> = [];
-	public static var mouseMove:Array<Dynamic> = [];
-	public static var mouseWheel:Array<Dynamic> = [];
-	public static var keyUp:Array<Dynamic> = [];
-	public static var keyDown:Array<Dynamic> = [];
-	
 	override function config(config:AppConfig):AppConfig {
-		#if js
-		//app.assets.strict = false;
-		#end
 		config.window.title = 'BabylonHx_Snow samples';
 		return config;
 	}
@@ -39,11 +23,12 @@ class Main extends snow.App {
 		engine = new Engine(this);
 		scene = new Scene(engine);
 		
-		new samples.BasicScene(scene);
+		//new samples.BasicScene(scene);
 		//new samples.BasicElements(scene);
 		//new samples.RotationAndScaling(scene);
 		//new samples.Materials(scene);
 		//new samples.Lights(scene);
+		//new samples.BumpMap(scene);
 		//new samples.Animations(scene);
 		//new samples.Collisions(scene);
 		//new samples.Intersections(scene);
@@ -80,46 +65,66 @@ class Main extends snow.App {
 		//new samples.Picking(scene);
 		//new samples.Particles3(scene);
 		//new samples.Octree(scene);
+		//new samples.SSAO(scene);						// NOT WORKING YET !!
+		new samples.Decals(scene);
 		
 		app.window.onrender = render;
 	}
 		
-	override function onmousedown(x:Int, y:Int, button:Int, _, _) {
-		for(f in mouseDown) {
+	override function onmousedown(x:Int, y:Int, button:Int, timestamp:Float, window_id:Int) {
+		for(f in Engine.mouseDown) {
+			f(x, y, button);
+		}
+	}
+	
+	override function onmouseup(x:Int, y:Int, button:Int, timestamp:Float, window_id:Int) {
+		for(f in Engine.mouseUp) {
+			f(x, y, button);
+		}
+	}
+	
+	override function onmousemove(x:Int, y:Int, xrel:Int, yrel:Int, timestamp:Float, window_id:Int) {
+		for(f in Engine.mouseMove) {
 			f(x, y);
 		}
 	}
 	
-	override function onmouseup(x:Int, y:Int, button:Int, _, _) {
-		for(f in mouseUp) {
-			f();
-		}
-	}
-	
-	override function onmousemove(x:Int, y:Int, _, _, _, _) {
-		for(f in mouseMove) {
-			f(x, y);
-		}
-	}
-	
-	override function onmousewheel(_, y:Int, _, _) {
-		for (f in mouseWheel) {
+	override function onmousewheel(x:Int, y:Int, timestamp:Float, window_id:Int) {
+		for (f in Engine.mouseWheel) {
 			f(y);
 		}
 	}
+	
+	override function ontouchdown(x:Float, y:Float, touch_id:Int, timestamp:Float) {
+		for (f in Engine.touchDown) {
+			f(x, y, touch_id, timestamp);
+		}
+	}
+	
+	override function ontouchup(x:Float, y:Float, touch_id:Int, timestamp:Float) {
+		for (f in Engine.touchUp) {
+			f(x, y, touch_id, timestamp);
+		}
+	}
+	
+	override function ontouchmove(x:Float, y:Float, dx:Float, dy:Float, touch_id:Int, timestamp:Float) {
+		for (f in Engine.touchMove) {
+			f(x, y, dx, dy, touch_id, timestamp);
+		}
+	}
 
-	override function onkeyup(keycode:Int, scancode:Int, _, mod:ModState, _, _) {
+	override function onkeyup(keycode:Int, scancode:Int, repeat:Bool, mod:ModState, timestamp:Float, window_id:Int) {
 		if (keycode == Key.escape) {
 			app.shutdown();
 		}
 		
-		for(f in keyUp) {
+		for(f in Engine.keyUp) {
 			f(keycode);
 		}
 	}
 	
-	override function onkeydown(keycode:Int, scancode:Int, _, _, _, _) {
-		for(f in keyDown) {
+	override function onkeydown(keycode:Int, scancode:Int, repeat:Bool, mod:ModState, timestamp:Float, window_id:Int) {
+		for(f in Engine.keyDown) {
 			f(keycode);
 		}
 	}
