@@ -29,11 +29,9 @@ import com.babylonhx.materials.textures.Texture;
 import haxe.Json;
 
 import snow.assets.AssetImage;
-import snow.utils.Float32Array;
-import snow.utils.UInt8Array;
-import snow.utils.UInt8Array;
-import snow.utils.ArrayBuffer;
-import snow.utils.ByteArray;
+import snow.io.typedarray.Float32Array;
+import snow.io.typedarray.Uint8Array;
+import snow.io.typedarray.ArrayBuffer;
 
 
 /**
@@ -1008,7 +1006,7 @@ import snow.utils.ByteArray;
 		Tools.LoadImage(url, onload);
 	}
 
-	public function applyDisplacementMapFromBuffer(buffer:UInt8Array, heightMapWidth:Float, heightMapHeight:Float, minHeight:Float, maxHeight:Float) {
+	public function applyDisplacementMapFromBuffer(buffer:Uint8Array, heightMapWidth:Float, heightMapHeight:Float, minHeight:Float, maxHeight:Float) {
 		if (!this.isVerticesDataPresent(VertexBuffer.PositionKind)
 			|| !this.isVerticesDataPresent(VertexBuffer.NormalKind)
 			|| !this.isVerticesDataPresent(VertexBuffer.UVKind)) {
@@ -1442,7 +1440,7 @@ import snow.utils.ByteArray;
 		
         var currentVertexDataIndex:Int = 0;
 		
-        var extractDecalVector3 = inline function(indexId:Int):PositionNormalVertex {
+        var extractDecalVector3 = function(indexId:Int):PositionNormalVertex {
             var vertexId = indices[indexId];
             var result = new PositionNormalVertex();
             result.position = new Vector3(positions[vertexId * 3], positions[vertexId * 3 + 1], positions[vertexId * 3 + 2]);
@@ -1464,7 +1462,7 @@ import snow.utils.ByteArray;
 			
             var clipSize = 0.5 * Math.abs(Vector3.Dot(size, axis));
 			
-            var clipVertices = inline function(v0:PositionNormalVertex, v1:PositionNormalVertex):PositionNormalVertex {
+            var clipVertices = function(v0:PositionNormalVertex, v1:PositionNormalVertex):PositionNormalVertex {
                 var clipFactor = Vector3.GetClipFactor(v0.position, v1.position, axis, clipSize);
 				
                 return new PositionNormalVertex(

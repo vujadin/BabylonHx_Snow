@@ -4,8 +4,7 @@ import com.babylonhx.math.Matrix;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.math.Vector2;
 
-import snow.utils.UInt8Array;
-import snow.utils.ByteArray;
+import snow.io.typedarray.Uint8Array;
 
 
 /**
@@ -982,7 +981,7 @@ import snow.utils.ByteArray;
 		return vertexData;
 	}
 
-	public static function CreateGroundFromHeightMap(width:Float, height:Float, subdivisions:Int, minHeight:Float, maxHeight:Float, buffer:UInt8Array, bufferWidth:Float, bufferHeight:Float):VertexData {
+	public static function CreateGroundFromHeightMap(width:Float, height:Float, subdivisions:Int, minHeight:Float, maxHeight:Float, buffer:Uint8Array, bufferWidth:Float, bufferHeight:Float):VertexData {
 		var indices:Array<Int> = [];
 		var positions:Array<Float> = [];
 		var normals:Array<Float> = [];
@@ -999,9 +998,9 @@ import snow.utils.ByteArray;
 				
 				var pos = Std.int((heightMapX + heightMapY * bufferWidth) * 4);
 				#if !js
-				var r = buffer.getUInt8(pos) / 255.0;
-				var g = buffer.getUInt8(pos + 1) / 255.0;
-				var b = buffer.getUInt8(pos + 2) / 255.0;
+				var r = buffer.buffer.get(pos) / 255.0;
+				var g = buffer.buffer.get(pos + 1) / 255.0;
+				var b = buffer.buffer.get(pos + 2) / 255.0;  // buffer.getUInt8(...
 				#else
 				var r = buffer[pos] / 255.0;
 				var g = buffer[pos + 1] / 255.0;

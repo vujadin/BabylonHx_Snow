@@ -30,6 +30,10 @@ class OimoPlugin implements IPhysicsEnginePlugin {
 	private var _world:World;
 	private var _registeredMeshes:Array<Dynamic> = [];
 	
+	
+	public function new() {
+		//
+	}
 
 	private function _checkWithEpsilon(value:Float):Float {
 		return value < PhysicsEngine.Epsilon ? PhysicsEngine.Epsilon : value;

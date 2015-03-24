@@ -16,7 +16,7 @@ import snow.render.opengl.GL;
 import snow.render.opengl.GL.GLUniformLocation;
 import snow.render.opengl.GL.GLProgram;
 import snow.render.opengl.GL.GLTexture;
-import snow.utils.Float32Array;
+import snow.io.typedarray.Float32Array;
 import snow.assets.AssetText;
 
 
@@ -184,7 +184,7 @@ import snow.assets.AssetText;
 				#if js
 				if (sampler == null) {
 				#else
-                if (sampler < 0) {
+                if (cast(sampler, Int) < 0) {
 				#end
                     this._samplers.splice(index, 1);
                     index--;

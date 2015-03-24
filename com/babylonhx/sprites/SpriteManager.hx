@@ -5,7 +5,7 @@ import com.babylonhx.mesh.BabylonBuffer;
 import com.babylonhx.materials.textures.Texture;
 import com.babylonhx.tools.Tools;
 
-import snow.utils.Float32Array;
+import snow.io.typedarray.Float32Array;
 
 
 /**

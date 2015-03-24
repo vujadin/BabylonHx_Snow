@@ -13,6 +13,10 @@ package com.babylonhx.materials;
 	
 	public var isMoreFallbacks(get, never):Bool;
 	
+	
+	public function new() {
+		// 
+	}	
 
 	public function addFallback(rank:Int, define:String):Void {
 		if (this._defines[rank] == null) {

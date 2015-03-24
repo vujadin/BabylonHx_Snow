@@ -60,9 +60,9 @@ import haxe.Timer;
 
 import org.msgpack.MsgPack;
 
-import snow.utils.ArrayBuffer;
-import snow.utils.Float32Array;
-import snow.utils.Int32Array;
+import snow.io.typedarray.ArrayBuffer;
+import snow.io.typedarray.Float32Array;
+import snow.io.typedarray.Int32Array;
 import snow.assets.AssetBytes;
 import snow.assets.AssetText;
 
@@ -1523,7 +1523,7 @@ import snow.assets.AssetText;
             if (geometry != null) {
                 geometry.applyToMesh(mesh);
             }
-        } else if (Std.is(parsedGeometry, ArrayBuffer)) {
+        //} else if (Std.is(parsedGeometry, ArrayBuffer)) {
             /*var binaryInfo = mesh._binaryInfo;
 			 * 
             if (binaryInfo.positionsAttrDesc != null && binaryInfo.positionsAttrDesc.count > 0) {

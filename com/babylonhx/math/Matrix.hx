@@ -3,7 +3,7 @@ package com.babylonhx.math;
 import com.babylonhx.cameras.Camera;
 import com.babylonhx.tools.Tools;
 
-import snow.utils.Float32Array;
+import snow.io.typedarray.Float32Array;
 
 /**
 * ...

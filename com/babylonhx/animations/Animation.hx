@@ -161,7 +161,7 @@ import com.babylonhx.mesh.AbstractMesh;
 	}
 
 	private function _interpolate(currentFrame:Int, repeatCount:Int, loopMode:Int, ?offsetValue:Dynamic, ?highLimitValue:Dynamic):Dynamic {
-		if (loopMode == Animation.ANIMATIONLOOPMODE_CONSTANT && repeatCount > 0) {
+		if (loopMode == Animation.ANIMATIONLOOPMODE_CONSTANT && repeatCount > 0 && highLimitValue != null) {
 			return highLimitValue.clone != null ? highLimitValue.clone() : highLimitValue;
 		}
 		

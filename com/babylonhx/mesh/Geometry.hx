@@ -4,7 +4,7 @@ import com.babylonhx.culling.BoundingInfo;
 import com.babylonhx.tools.Tools;
 import haxe.Json;
 
-import snow.utils.Float32Array;
+import snow.io.typedarray.Float32Array;
 
 
 /**

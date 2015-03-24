@@ -33,6 +33,10 @@ import snow.render.opengl.GL;
 		this._isAlphaBlendDirty = true;
 		return value;
 	}
+	
+	public function new() {
+		//
+	}
 
 	public function setAlphaBlendFunctionParameters(value0:Int, value1:Int, value2:Int, value3:Int) {
 		if (

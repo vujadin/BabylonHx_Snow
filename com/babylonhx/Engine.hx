@@ -19,12 +19,11 @@ import com.babylonhx.tools.Tools;
 import snow.utils.Libs;
 import snow.assets.AssetImage;
 import snow.render.opengl.GL;
-import snow.utils.UInt8Array;
-import snow.utils.Float32Array;
-import snow.utils.Int32Array;
-import snow.utils.Int16Array;
-import snow.utils.ArrayBufferView;
-import snow.utils.ByteArray;
+import snow.io.typedarray.Uint8Array;
+import snow.io.typedarray.Float32Array;
+import snow.io.typedarray.Int32Array;
+import snow.io.typedarray.Int16Array;
+import snow.io.typedarray.ArrayBufferView;
 import snow.Snow;
 import snow.App;
 import snow.Core;
@@ -195,13 +194,17 @@ import js.Browser;
 		}*/
 		
 		// Extensions
-		this._caps.standardDerivatives = (GL.getExtension('OES_standard_derivatives') != null);
-		this._caps.s3tc = GL.getExtension('WEBGL_compressed_texture_s3tc');
-		this._caps.textureFloat = (GL.getExtension('OES_texture_float') != null);
-		this._caps.textureAnisotropicFilterExtension = GL.getExtension('EXT_texture_filter_anisotropic') || GL.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || GL.getExtension('MOZ_EXT_texture_filter_anisotropic');
-		this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension != null ? GL.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
-		this._caps.instancedArrays = GL.getExtension('ANGLE_instanced_arrays');
-		this._caps.uintIndices = GL.getExtension('OES_element_index_uint') != null;
+		try {
+			this._caps.standardDerivatives = (GL.getExtension('OES_standard_derivatives') != null);
+			this._caps.s3tc = GL.getExtension('WEBGL_compressed_texture_s3tc');
+			this._caps.textureFloat = (GL.getExtension('OES_texture_float') != null);
+			this._caps.textureAnisotropicFilterExtension = GL.getExtension('EXT_texture_filter_anisotropic') || GL.getExtension('WEBKIT_EXT_texture_filter_anisotropic') || GL.getExtension('MOZ_EXT_texture_filter_anisotropic');
+			this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension != null ? GL.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
+			this._caps.instancedArrays = GL.getExtension('ANGLE_instanced_arrays');
+			this._caps.uintIndices = GL.getExtension('OES_element_index_uint') != null;
+		} catch (err:Dynamic) {
+			trace(err);
+		}
 		
 		#if !js
 		if (this._caps.s3tc == null) {
@@ -501,7 +504,7 @@ import js.Browser;
 	inline public function updateDynamicVertexBuffer(vertexBuffer:BabylonBuffer, vertices:Dynamic, offset:Int = 0) {
 		GL.bindBuffer(GL.ARRAY_BUFFER, vertexBuffer.buffer);
 		
-		if (Std.is(vertices, Float32Array)) {
+		if (!Std.is(vertices, Array)) {
 			GL.bufferSubData(GL.ARRAY_BUFFER, offset, vertices);
 		} else {
 			GL.bufferSubData(GL.ARRAY_BUFFER, offset, new Float32Array(cast vertices));

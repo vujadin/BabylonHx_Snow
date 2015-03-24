@@ -5,7 +5,7 @@ import com.babylonhx.math.Matrix;
 import com.babylonhx.tools.Tools;
 import com.babylonhx.animations.IAnimatable;
 
-import snow.utils.Float32Array;
+import snow.io.typedarray.Float32Array;
 
 
 /**

@@ -109,7 +109,8 @@ import snow.assets.AssetImage;
 		if (allowsNullUndefined != true && obj == null)
 			return null;
 			
-		if (Std.is(obj, Map)) {
+		if(Reflect.hasField(obj, "get")) {
+		//if (Std.is(obj, Map)) {
 			var ret:Array<Dynamic> = [];
 			for (key in cast(obj, Map<Dynamic, Dynamic>).keys()) {
 				ret.push(obj.get(key));
@@ -416,7 +417,7 @@ import snow.assets.AssetImage;
         if (Std.is(source, SubMesh)) {
             return cast(source, SubMesh).clone(cast(destinationObject, AbstractMesh));
         } else if (Reflect.hasField(source, "clone")) {
-            return Reflect.callMethod(source, "clone", []);
+            return source.clone();// Reflect.callMethod(source, "clone", []);
         }
         return null;
     };

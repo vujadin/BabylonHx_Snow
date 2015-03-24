@@ -96,6 +96,10 @@ import snow.render.opengl.GL;
 		this._isDepthTestDirty = true;
 		return value;
 	}
+	
+	public function new() {
+		//
+	}
 
 	public function reset() {
 		this._depthMask = true;
