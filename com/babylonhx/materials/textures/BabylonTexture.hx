@@ -2,7 +2,7 @@ package com.babylonhx.materials.textures;
 
 import com.babylonhx.ISmartArrayCompatible;
 
-import snow.render.opengl.GL;
+import com.babylonhx.GL;
 
 
 /**

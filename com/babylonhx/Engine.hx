@@ -18,12 +18,12 @@ import com.babylonhx.tools.Tools;
 
 import snow.utils.Libs;
 import snow.assets.AssetImage;
-import snow.render.opengl.GL;
-import snow.io.typedarray.Uint8Array;
-import snow.io.typedarray.Float32Array;
-import snow.io.typedarray.Int32Array;
-import snow.io.typedarray.Int16Array;
-import snow.io.typedarray.ArrayBufferView;
+import com.babylonhx.GL;
+import com.babylonhx.typedarray.UInt8Array;
+import com.babylonhx.typedarray.Float32Array;
+import com.babylonhx.typedarray.Int32Array;
+import com.babylonhx.typedarray.Int16Array;
+import com.babylonhx.typedarray.ArrayBufferView;
 import snow.Snow;
 import snow.App;
 import snow.Core;

@@ -1,6 +1,6 @@
 package com.babylonhx.math;
 
-import snow.io.typedarray.Float32Array;
+import com.babylonhx.typedarray.Float32Array;
 
 /**
 * ...

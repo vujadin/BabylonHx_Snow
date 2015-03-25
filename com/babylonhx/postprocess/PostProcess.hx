@@ -8,7 +8,7 @@ import com.babylonhx.math.Color4;
 import com.babylonhx.tools.SmartArray;
 import com.babylonhx.tools.Tools;
 
-import snow.render.opengl.GL;
+import com.babylonhx.GL;
 
 
 /**

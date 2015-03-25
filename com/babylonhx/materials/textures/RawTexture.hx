@@ -1,6 +1,6 @@
 package com.babylonhx.materials.textures;
 
-import snow.utils.ArrayBufferView;
+import com.babylonhx.typedarray.ArrayBufferView;
 
 
 /**

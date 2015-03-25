@@ -9,14 +9,13 @@ import com.babylonhx.math.Vector2;
 import com.babylonhx.math.Vector3;
 import com.babylonhx.postprocess.PostProcess;
 import com.babylonhx.materials.textures.BaseTexture;
-
+import com.babylonhx.GL;
+import com.babylonhx.GL.GLUniformLocation;
+import com.babylonhx.GL.GLProgram;
+import com.babylonhx.GL.GLTexture;
+import com.babylonhx.typedarray.Float32Array;
 
 import snow.App;
-import snow.render.opengl.GL;
-import snow.render.opengl.GL.GLUniformLocation;
-import snow.render.opengl.GL.GLProgram;
-import snow.render.opengl.GL.GLTexture;
-import snow.io.typedarray.Float32Array;
 import snow.assets.AssetText;
 
 

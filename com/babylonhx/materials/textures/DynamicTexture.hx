@@ -1,6 +1,6 @@
 package com.babylonhx.materials.textures;
 
-import snow.utils.UInt8Array;
+import com.babylonhx.typedarray.UInt8Array;
 
 
 /**

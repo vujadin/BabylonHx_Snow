@@ -1,6 +1,6 @@
 package com.babylonhx.mesh;
 
-import snow.render.opengl.GL.GLBuffer;
+import com.babylonhx.GL.GLBuffer;
 
 
 /**

@@ -1,8 +1,7 @@
 package com.babylonhx.math;
 
 import com.babylonhx.tools.Tools;
-
-import snow.io.typedarray.Float32Array;
+import com.babylonhx.typedarray.Float32Array;
 
 
 /**

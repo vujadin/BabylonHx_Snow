@@ -4,7 +4,7 @@ import com.babylonhx.animations.Animation;
 import com.babylonhx.animations.IAnimatable;
 import com.babylonhx.math.Matrix;
 
-import snow.render.opengl.GL;
+import com.babylonhx.GL;
 
 /**
  * ...
