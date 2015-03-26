@@ -1,4 +1,4 @@
-BabylonHx_Snow
+BabylonHx_Snow - DEPRICATED (moved to https://github.com/vujadin/BabylonHx)
 ==============
 
 BabylonHx is a direct port of BabylonJs engine to Haxe/Snow.
